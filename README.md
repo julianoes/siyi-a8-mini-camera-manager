@@ -75,6 +75,7 @@ Get the source code, which is part of this repository, either using `scp`, or vi
 Then build it on the RPi:
 
 ```
+cd rtsp-rebroadcast
 cmake -Bbuild -S.
 cmake --build build
 ```
@@ -109,3 +110,30 @@ ffplay rtsp://192.168.x.y:8554/live
 Or open the URL in VLC.
 
 Note that all these tools add quite a bit of buffering by default, so a delay of 1-3 seconds is quite normal.
+
+
+## MAVLink camera server
+
+In order to have QGroundControl auto-connect to the video feed and show camera settings, we can use a MAVLink camera server.
+
+The camera manager is implemented using A small application on top of MAVSDK the RTSP URL, as well as camera settings.
+
+### Build
+
+Clone or copy this repo on to the the RPi:
+
+Then build:
+```
+cd camera-manager
+cmake -Bbuild -S.
+cmake --build build
+```
+
+### Run
+
+And run it:
+```
+build/camera_manager
+```
+
+TODO: add instructions and changes how to connect to a Pixhawk.
