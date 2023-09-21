@@ -3,8 +3,11 @@
 #include <mavsdk/mavsdk.h>
 #include <mavsdk/plugins/camera_server/camera_server.h>
 
-int main(int argc, char** argv)
+#include "siyi.hpp"
+
+int main(int, char**)
 {
+    // MAVSDK setup first
     mavsdk::Mavsdk mavsdk;
     mavsdk::Mavsdk::Configuration configuration(mavsdk::Mavsdk::Configuration::UsageType::Camera);
     mavsdk.set_configuration(configuration);
@@ -18,6 +21,12 @@ int main(int argc, char** argv)
 
     auto camera_server = mavsdk::CameraServer{
         mavsdk.server_component_by_type(mavsdk::Mavsdk::ServerComponentType::Camera)};
+
+    // SIYI setup second
+    siyi::Messager siyi_messager;
+    siyi_messager.setup("192.168.144.25", 37260);
+
+    siyi::Serializer siyi_serializer;
 
     auto ret = camera_server.set_information({
         .vendor_name = "SIYI",
@@ -47,6 +56,35 @@ int main(int argc, char** argv)
         std::cerr << "Failed to set video stream info, exiting" << std::endl;
         return 2;
     }
+
+    camera_server.subscribe_take_photo([&camera_server, &siyi_messager, &siyi_serializer](int32_t index) {
+            camera_server.set_in_progress(true);
+
+            std::cout << "Taking a picture (" << +index << ")..." << std::endl;
+            siyi_messager.send(siyi_serializer.assemble_message(siyi::TakePicture{}));
+
+            // TODO: populate with telemetry data
+            auto position = mavsdk::CameraServer::Position{};
+            auto attitude = mavsdk::CameraServer::Quaternion{};
+
+            auto timestamp = std::chrono::duration_cast<std::chrono::milliseconds>(
+                                 std::chrono::system_clock::now().time_since_epoch())
+                                 .count();
+            auto success = true;
+
+            camera_server.set_in_progress(false);
+
+            camera_server.respond_take_photo(
+                mavsdk::CameraServer::TakePhotoFeedback::Ok,
+                mavsdk::CameraServer::CaptureInfo{
+                    .position = position,
+                    .attitude_quaternion = attitude,
+                    .time_utc_us = static_cast<uint64_t>(timestamp),
+                    .is_success = success,
+                    .index = index,
+                    .file_url = {},
+                });
+        });
 
     // Run as a server and never quit
     while (true) {

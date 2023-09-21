@@ -78,6 +78,24 @@ private:
     const int8_t _turn_pitch;
 };
 
+class TakePicture : public Payload<TakePicture> {
+public:
+    TakePicture() = default;
+
+    std::vector<std::uint8_t> bytes_impl() const {
+        std::vector<std::uint8_t> result;
+        result.push_back(_func_type);
+        return result;
+    }
+
+    uint8_t cmd_id_impl() const {
+        return 0x0C;
+    }
+
+private:
+    const uint8_t _func_type{0};
+};
+
 class Messager
 {
 public:
