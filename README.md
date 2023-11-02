@@ -133,7 +133,56 @@ cmake --build build
 
 And run it:
 ```
-build/camera_manager
+build/camera_manager /dev/serial/to/pixhawk
 ```
 
-TODO: add instructions and changes how to connect to a Pixhawk.
+And replace the serial device used, as explained below.
+
+## Pixhawk connection
+
+There are at least three ways to connect a Pixhawk to the RPi 4:
+
+### 1. Connect to RPi serial pins
+
+Connect Telem1 to the RPi's pin header pin 8 (GPIO14, UART Tx) and pin 10 (GPIO15, UART Rx), and GND.
+
+Note that this requires bluetooth to be disabled.
+
+In order for the serial connection to work, a couple of settings are required:
+
+- `/boot/config.txt`: Add (or uncomment) `enable_uart=1` and add (or uncomment) `dtoverlay=disable-bt`.
+- `/boot/cmdline.txt`: Remove `console=serial0,115200`
+- `sudo systemctl disable hciuart`
+- `sudo reboot`
+
+There should now be a a serial device on `/dev/serial0` respectively `/dev/ttyAMA0`.
+
+```
+ls -l /dev | grep serial
+lrwxrwxrwx 1 root root           7 Nov  2 18:35 serial0 -> ttyAMA0
+lrwxrwxrwx 1 root root           5 Nov  2 18:35 serial1 -> ttyS0
+```
+
+Note that a user must be in the group `dialout` to have access.
+
+### 2. Connect using FTDI cable
+
+Connect Telem1 to an FTDI cable plugged into the RPi. The serial device should be on `/dev/ttyUSB0` as well as `/dev/serial/by-id/usb-FTDI_...`, e.g.:
+
+```
+ls -l /dev/serial/by-id/ grep FTDI
+lrwxrwxrwx 1 root root 13 Oct 31 21:55 usb-FTDI_FT232R_USB_UART_A907CB4L-if00-port0 -> ../../ttyUSB0
+```
+
+Note that a user must be in the group `dialout` to have access.
+
+### 3. Connect using USB cable
+
+Alternatively, just connect the Pixhawk's USB cable to the RPi. However, this is generally not recommended, as the NuttX USB port is not tested in-flight.
+Also, it blocks the port for a firmware update via USB.
+
+In that case the serial device should show up as `/dev/ttACM0`.
+
+## Pixhawk firmware
+
+This currently only properly works with PX4 built from source from the `main` branch. The reason is that forwarding is broken with v1.14.0 and earlier. The plan is to fix this for v1.14.1.
