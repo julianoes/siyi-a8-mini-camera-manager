@@ -76,34 +76,54 @@ int main(int argc, char* argv[])
         return 2;
     }
 
-    camera_server.subscribe_take_photo([&camera_server, &siyi_messager, &siyi_serializer](int32_t index) {
-            camera_server.set_in_progress(true);
+    int32_t images_captured = 0;
 
-            std::cout << "Taking a picture (" << +index << ")..." << std::endl;
-            siyi_messager.send(siyi_serializer.assemble_message(siyi::TakePicture{}));
+    camera_server.subscribe_take_photo([&](int32_t index) {
 
-            // TODO: populate with telemetry data
-            auto position = mavsdk::CameraServer::Position{};
-            auto attitude = mavsdk::CameraServer::Quaternion{};
+        // TODO: not sure what to do about this index.
+        (void)index;
+        camera_server.set_in_progress(true);
 
-            auto timestamp = std::chrono::duration_cast<std::chrono::milliseconds>(
-                                 std::chrono::system_clock::now().time_since_epoch())
-                                 .count();
-            auto success = true;
+        std::cout << "Taking a picture (" << +index << ")..." << std::endl;
+        siyi_messager.send(siyi_serializer.assemble_message(siyi::TakePicture{}));
 
-            camera_server.set_in_progress(false);
+        // TODO: populate with telemetry data
+        auto position = mavsdk::CameraServer::Position{};
+        auto attitude = mavsdk::CameraServer::Quaternion{};
 
-            camera_server.respond_take_photo(
-                mavsdk::CameraServer::CameraFeedback::Ok,
-                mavsdk::CameraServer::CaptureInfo{
-                    .position = position,
-                    .attitude_quaternion = attitude,
-                    .time_utc_us = static_cast<uint64_t>(timestamp),
-                    .is_success = success,
-                    .index = index,
-                    .file_url = {},
-                });
+        auto timestamp = std::chrono::duration_cast<std::chrono::milliseconds>(
+                             std::chrono::system_clock::now().time_since_epoch())
+                             .count();
+        auto success = true;
+
+        camera_server.set_in_progress(false);
+
+        camera_server.respond_take_photo(
+            mavsdk::CameraServer::CameraFeedback::Ok,
+            mavsdk::CameraServer::CaptureInfo{
+                .position = position,
+                .attitude_quaternion = attitude,
+                .time_utc_us = static_cast<uint64_t>(timestamp),
+                .is_success = success,
+                .index = images_captured++,
+                .file_url = {},
+            });
         });
+
+
+    camera_server.subscribe_capture_status([&](int32_t) {
+
+        auto camera_feedback = mavsdk::CameraServer::CameraFeedback::Ok;
+        auto capture_status = mavsdk::CameraServer::CaptureStatus{};
+        capture_status.image_interval_s = NAN;
+        capture_status.recording_time_s = NAN;
+        capture_status.available_capacity_mib = NAN; // TODO: figure out remaining storage
+        capture_status.image_status = mavsdk::CameraServer::CaptureStatus::ImageStatus::Idle;
+        capture_status.video_status = mavsdk::CameraServer::CaptureStatus::VideoStatus::Idle;
+        capture_status.image_count = images_captured;
+
+        camera_server.respond_capture_status(camera_feedback, capture_status);
+    });
 
     // Run as a server and never quit
     while (true) {
