@@ -6,28 +6,36 @@
 
 int main(int argc, char* argv[])
 {
-    if (argc != 3) {
+    if (argc != 4) {
         std::cerr << "Error: Invalid argument.\n"
                   << "\n"
-                  << "Usage: " << argv[0] << " <mavsdk connection url> <our ip>\n"
+                  << "Usage: " << argv[0] << " <mavsdk connection url> <ground station connection url> <our ip>\n"
                   << "\n"
-                  << "E.g. " << argv[0] << " serial:///dev/ttyUSB0:57600 192.168.1.45\n";
+                  << "E.g. " << argv[0] << " serial:///dev/ttyUSB0:57600 udp://192.168.1.51:14550 192.168.1.45\n";
         return 1;
     }
 
     const std::string mavsdk_connection_url{argv[1]};
-    const std::string our_ip{argv[2]};
+    const std::string groundstation_connection_url{argv[2]};
+    const std::string our_ip{argv[3]};
 
     // MAVSDK setup first
     mavsdk::Mavsdk mavsdk;
     mavsdk::Mavsdk::Configuration configuration(mavsdk::Mavsdk::ComponentType::Camera);
     mavsdk.set_configuration(configuration);
 
-    auto result = mavsdk.add_any_connection(mavsdk_connection_url);
+    auto result = mavsdk.add_any_connection(mavsdk_connection_url, mavsdk::ForwardingOption::ForwardingOn);
     if (result != mavsdk::ConnectionResult::Success) {
-        std::cerr << "Could not establish connection: " << result << std::endl;
+        std::cerr << "Could not establish autopilot connection: " << result << std::endl;
         return 1;
     }
+
+    result = mavsdk.add_any_connection(groundstation_connection_url, mavsdk::ForwardingOption::ForwardingOn);
+    if (result != mavsdk::ConnectionResult::Success) {
+        std::cerr << "Could not establish ground station connection: " << result << std::endl;
+        return 1;
+    }
+
     std::cout << "Created camera server connection" << std::endl;
 
     auto camera_server = mavsdk::CameraServer{
