@@ -2,17 +2,28 @@
 #include <thread>
 #include <mavsdk/mavsdk.h>
 #include <mavsdk/plugins/camera_server/camera_server.h>
-
 #include "siyi.hpp"
 
-int main(int, char**)
+int main(int argc, char* argv[])
 {
+    if (argc != 3) {
+        std::cerr << "Error: Invalid argument.\n"
+                  << "\n"
+                  << "Usage: " << argv[0] << " <mavsdk connection url> <our ip>\n"
+                  << "\n"
+                  << "E.g. " << argv[0] << " serial:///dev/ttyUSB0:57600 192.168.1.45\n";
+        return 1;
+    }
+
+    const std::string mavsdk_connection_url{argv[1]};
+    const std::string our_ip{argv[2]};
+
     // MAVSDK setup first
     mavsdk::Mavsdk mavsdk;
-    mavsdk::Mavsdk::Configuration configuration(mavsdk::Mavsdk::Configuration::UsageType::Camera);
+    mavsdk::Mavsdk::Configuration configuration(mavsdk::Mavsdk::ComponentType::Camera);
     mavsdk.set_configuration(configuration);
 
-    auto result = mavsdk.add_any_connection("udp://:14030");
+    auto result = mavsdk.add_any_connection(mavsdk_connection_url);
     if (result != mavsdk::ConnectionResult::Success) {
         std::cerr << "Could not establish connection: " << result << std::endl;
         return 1;
@@ -20,7 +31,7 @@ int main(int, char**)
     std::cout << "Created camera server connection" << std::endl;
 
     auto camera_server = mavsdk::CameraServer{
-        mavsdk.server_component_by_type(mavsdk::Mavsdk::ServerComponentType::Camera)};
+        mavsdk.server_component_by_type(mavsdk::Mavsdk::ComponentType::Camera)};
 
     // SIYI setup second
     siyi::Messager siyi_messager;
@@ -49,7 +60,7 @@ int main(int, char**)
 
     ret = camera_server.set_video_streaming(mavsdk::CameraServer::VideoStreaming{
         .has_rtsp_server = true,
-        .rtsp_uri = "rtsp://192.168.1.39:8554/live",
+        .rtsp_uri = std::string{"rtsp://"} + our_ip + std::string{":8554/live"},
     });
 
     if (ret != mavsdk::CameraServer::Result::Success) {
@@ -75,7 +86,7 @@ int main(int, char**)
             camera_server.set_in_progress(false);
 
             camera_server.respond_take_photo(
-                mavsdk::CameraServer::TakePhotoFeedback::Ok,
+                mavsdk::CameraServer::CameraFeedback::Ok,
                 mavsdk::CameraServer::CaptureInfo{
                     .position = position,
                     .attitude_quaternion = attitude,

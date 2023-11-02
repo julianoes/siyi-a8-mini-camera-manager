@@ -147,10 +147,11 @@ cmake --build build
 
 And run it:
 ```
-build/camera_manager /dev/serial/to/pixhawk
+build/camera_manager serial:///dev/serial/to/pixhawk 192.168.x.y
 ```
 
 And replace the serial device used, as explained below.
+Also replace the IP with the IP of the RPi to be used by the ground station.
 
 ## Pixhawk connection
 
