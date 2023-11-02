@@ -2,16 +2,18 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <cstring>
 #include <iomanip>
 #include <iostream>
 #include <string>
 #include <vector>
 
 #include <sys/socket.h>
+#include <sys/time.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <unistd.h>
-#include <string.h>
+#include <errno.h>
 
 
 #include "siyi_crc.hpp"
@@ -34,6 +36,20 @@ public:
     friend std::ostream& operator<<(std::ostream& str, const Payload<PayloadType>& payload) {
         str << payload.bytes();
         return str;
+    }
+};
+
+class FirmwareVersion : public Payload<FirmwareVersion> {
+public:
+    FirmwareVersion() = default;
+
+    std::vector<std::uint8_t> bytes_impl() const {
+        std::vector<std::uint8_t> result;
+        return result;
+    }
+
+    uint8_t cmd_id_impl() const {
+        return 0x01;
     }
 };
 
@@ -96,6 +112,89 @@ private:
     const uint8_t _func_type{0};
 };
 
+class ToggleRecording : public Payload<ToggleRecording> {
+public:
+    ToggleRecording() = default;
+
+    std::vector<std::uint8_t> bytes_impl() const {
+        std::vector<std::uint8_t> result;
+        result.push_back(_func_type);
+        return result;
+    }
+
+    uint8_t cmd_id_impl() const {
+        return 0x0C;
+    }
+
+private:
+    const uint8_t _func_type{2};
+};
+
+class StreamSettings : public Payload<StreamSettings> {
+public:
+    StreamSettings() = default;
+
+    std::vector<std::uint8_t> bytes_impl() const {
+        std::vector<std::uint8_t> result;
+        result.push_back(_stream_type);
+        return result;
+    }
+
+    uint8_t cmd_id_impl() const {
+        return 0x20;
+    }
+
+private:
+    const uint8_t _stream_type{1}; // Set video stream
+};
+
+class StreamResolution : public Payload<StreamResolution> {
+public:
+    enum class Resolution {
+        Res720,
+        Res1080,
+    };
+
+    StreamResolution(Resolution resolution) {
+        switch (resolution) {
+            case Resolution::Res720:
+                _resolution_l = 1280;
+                _resolution_h = 720;
+                break;
+            case Resolution::Res1080:
+                _resolution_l = 1920;
+                _resolution_h = 1080;
+                break;
+        }
+    }
+
+    std::vector<std::uint8_t> bytes_impl() const {
+        std::vector<std::uint8_t> result;
+        result.push_back(_stream_type);
+        result.push_back(_video_enc_type);
+        result.push_back(_resolution_l & 0xff);
+        result.push_back((_resolution_l >> 8) & 0xff);
+        result.push_back(_resolution_h & 0xff);
+        result.push_back((_resolution_h >> 8) & 0xff);
+        result.push_back(_video_bitrate & 0xff);
+        result.push_back((_video_bitrate >> 8) & 0xff);
+        result.push_back(_reserved);
+        return result;
+    }
+
+    uint8_t cmd_id_impl() const {
+        return 0x21;
+    }
+
+private:
+    const uint8_t _stream_type{1}; // Set video stream
+    const uint8_t _video_enc_type{2}; // H265
+    uint16_t _resolution_l{0};
+    uint16_t _resolution_h{0};
+    const uint16_t _video_bitrate{4000};
+    const uint8_t _reserved{0};
+};
+
 class Messager
 {
 public:
@@ -124,6 +223,7 @@ public:
         }
 
         _addr.sin_addr.s_addr = *reinterpret_cast<uint32_t *>(buf);
+
         return true;
     }
 
@@ -136,6 +236,40 @@ public:
             return false;
         }
         return true;
+    }
+
+    void receive()
+    {
+        struct timeval tv;
+        tv.tv_sec = 1;
+        tv.tv_usec = 0;
+
+        fd_set readfds;
+        FD_ZERO(&readfds);
+        FD_SET(_sockfd, &readfds);
+
+        int ret = select(_sockfd+1, &readfds, NULL, NULL, &tv);
+        if (ret > 0) {
+            std::cout << "Something should be available: " << std::endl;
+
+            std::vector<uint8_t> buffer;
+            buffer.resize(2048);
+            ssize_t ret = recv(_sockfd, buffer.data(), buffer.size(), 0);
+            if (ret == -1) {
+                std::cerr << "Error receiving packet: " << strerror(errno) << std::endl;
+                return;
+            }
+
+            buffer.resize(ret);
+
+            std::cout << "Received: " << buffer << std::endl;
+
+        } else if (ret == 0) {
+            std::cout << "Timed out." << std::endl;
+
+        } else {
+                std::cerr << "Error with select: " << strerror(errno) << std::endl;
+        }
     }
 
 private:

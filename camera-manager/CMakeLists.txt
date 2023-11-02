@@ -24,6 +24,16 @@ target_link_libraries(camera_manager
 
 target_compile_options(camera_manager PRIVATE -Wall -Wextra)
 
+add_executable(siyi_cli
+    siyi_cli.cpp
+)
+
+target_link_libraries(siyi_cli
+    siyi
+)
+
+target_compile_options(siyi_cli PRIVATE -Wall -Wextra)
+
 include(CTest)
 
 add_executable(siyi_test
