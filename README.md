@@ -118,6 +118,20 @@ In order to have QGroundControl auto-connect to the video feed and show camera s
 
 The camera manager is implemented using A small application on top of MAVSDK the RTSP URL, as well as camera settings.
 
+### Get MAVSDK
+
+Currently MAVSDK is built from source for this step. Once released it will be a .deb package to install.
+
+```
+mkdir -p ~/src
+cd src
+git clone https://github.com/mavlink/MAVSDK.git
+cd
+git switch add_more_camera_function_rebased
+git submodule update --init --recursive
+cmake -Bbuild -H. -DCMAKE_INSTALL_PREFIX=install
+```
+
 ### Build
 
 Clone or copy this repo on to the the RPi:
@@ -125,7 +139,7 @@ Clone or copy this repo on to the the RPi:
 Then build:
 ```
 cd camera-manager
-cmake -Bbuild -S.
+cmake -Bbuild -S. -DCMAKE_PREFIX_PATH=~/src/MAVSDK/install
 cmake --build build
 ```
 
