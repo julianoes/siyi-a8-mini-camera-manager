@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<mavlinkcamera>
+    <definition version="20">
+        <model>SIYI</model>
+        <vendor>A8 mini</vendor>
+    </definition>
+    <parameters>
+        <!-- control = 0 tells us this should not create an automatic UI control -->
+        <parameter name="CAM_MODE" type="int32" default="1" control="0">
+            <description>Camera Mode</description>
+        </parameter>
+        <parameter name="STREAM_RES" type="int32" default="0">
+            <description>Video stream resolution</description>
+            <options>
+                <option name="1280x720" value="0" />
+                <option name="1920x1080" value="1" />
+            </options>
+        </parameter>
+    </parameters>
+    <localization>
+        <!-- If no appropriate locale is found, the original (above) will be used -->
+        <!-- At runtime, the code will go through every "description" and "option name" looking for "original" and replace it with "translated" -->
+        <locale name="de_DE">
+            <strings original="Camera Mode" translated="Kamera Modus" />
+            <strings original="Photo" translated="Foto" />
+            <strings original="Video" translated="Video" />
+            <strings original="White Balance Mode" translated="Weißabgleich Modus" />
+            <strings original="Auto" translated="Auto" />
+            <strings original="Incandescent" translated="Glühlampen" />
+            <strings original="Sunset" translated="Sonnenuntergang" />
+            <strings original="Sunny" translated="Sonnig" />
+            <strings original="Cloudy" translated="Bewölkt" />
+            <strings original="Fluorescent" translated="Fluoreszierende" />
+            <strings original="Lock" translated="Sperre" />
+            <strings original="Exposure Mode" translated="Belichtungsmodus" />
+            <strings original="Manual" translated="Manuell" />
+            <strings original="Shutter Speed" translated="Verschlusszeit" />
+            <strings original="Exposure Compensation" translated="Belichtungskorrektur" />
+            <strings original="Video Resolution" translated="Videoauflösung" />
+            <strings original="Video Format" translated="Video-Format" />
+            <strings original="Metering Mode" translated="Messmodus" />
+            <strings original="Average" translated="Durchschnitt" />
+            <strings original="Center" translated="Zentrum" />
+            <strings original="Spot" translated="Punkt" />
+            <strings original="Color Mode" translated="Farbmodus" />
+            <strings original="Neutral" translated="Neutral" />
+            <strings original="Enhanced" translated="Verbessert" />
+            <strings original="Night" translated="Nacht" />
+            <strings original="Unprocessed" translated="Unverarbeitete" />
+            <strings original="Flickering Mode" translated="Flackernde Modus" />
+            <strings original="Image Format" translated="Bildformat" />
+            <strings original="Image Quality" translated="Bildqualität" />
+            <strings original="Low" translated="Low" />
+            <strings original="Medium" translated="Medium" />
+            <strings original="High" translated="Hoch" />
+            <strings original="Ultra" translated="Ultra" />
+            <strings original="Spot Metering Area" translated="Spotmessung Bereich" />
+            <strings original="Video Stream Aspect Ratio" translated="Seitenverhältnis der Video-Stream" />
+        </locale>
+        <locale name="zh_CN">
+            <strings original="Camera Mode" translated="相机型号" />
+            <strings original="Photo" translated="照片" />
+            <strings original="Video" translated="视频" />
+            <strings original="White Balance Mode" translated="白平衡" />
+            <strings original="Auto" translated="自动" />
+            <strings original="Incandescent" translated="白炽灯" />
+            <strings original="Sunrise" translated="日出" />
+            <strings original="Sunset" translated="日落" />
+            <strings original="Sunny" translated="日光" />
+            <strings original="Cloudy" translated="多云" />
+            <strings original="Fluorescent" translated="荧光灯" />
+            <strings original="Lock" translated="锁定" />
+            <strings original="Custom" translated="自定义" />
+            <strings original="Exposure Mode" translated="曝光模式" />
+            <strings original="Manual" translated="手动" />
+            <strings original="Shutter Speed" translated="快门速度" />
+            <strings original="Exposure Compensation" translated="曝光补偿" />
+            <strings original="Video Resolution" translated="视频分辨率" />
+            <strings original="Video Format" translated="视频格式" />
+            <strings original="Metering Mode" translated="测光模式" />
+            <strings original="Average" translated="平均测光" />
+            <strings original="Center" translated="中心测光" />
+            <strings original="Spot" translated="点测光" />
+            <strings original="Color Mode" translated="色调" />
+            <strings original="Neutral" translated="自然" />
+            <strings original="Enhanced" translated="增强" />
+            <strings original="Night" translated="夜间" />
+            <strings original="Unprocessed" translated="原始" />
+            <strings original="Flickering Mode" translated="抗闪烁" />
+            <strings original="Image Format" translated="图片格式" />
+            <strings original="Image Quality" translated="像素" />
+            <strings original="Low" translated="低" />
+            <strings original="Medium" translated="正常" />
+            <strings original="High" translated="高清" />
+            <strings original="Ultra" translated="超清" />
+            <strings original="Spot Metering Area" translated="点测光区域" />
+            <strings original="Video Stream Aspect Ratio" translated="视频长宽比" />
+        </locale>
+        <locale name="fr_FR">
+            <strings original="Camera Mode" translated="Mode de la caméra" />
+            <strings original="Photo" translated="Photo" />
+            <strings original="Video" translated="Vidéo" />
+            <strings original="White Balance Mode" translated="Mode Balance des blancs" />
+            <strings original="Auto" translated="Auto" />
+            <strings original="Incandescent" translated="Incandescent" />
+            <strings original="Sunset" translated="Coucher de soleil" />
+            <strings original="Sunny" translated="Ensoleillé" />
+            <strings original="Cloudy" translated="Nuageux" />
+            <strings original="Fluorescent" translated="Fluorescent" />
+            <strings original="Lock" translated="Verrouiller" />
+            <strings original="Exposure Mode" translated="Mode d’exposition" />
+            <strings original="Manual" translated="Manuel" />
+            <strings original="Shutter Speed" translated="Vitesse d’obturation" />
+            <strings original="Exposure Compensation" translated="Compensation d’exposition" />
+            <strings original="Video Resolution" translated="Résolution vidéo" />
+            <strings original="Video Format" translated="Format vidéo" />
+            <strings original="Metering Mode" translated="Mode de Mesure" />
+            <strings original="Average" translated="Moyenne" />
+            <strings original="Center" translated="Centré" />
+            <strings original="Spot" translated="Spot" />
+            <strings original="Color Mode" translated="Mode couleur" />
+            <strings original="Neutral" translated="Neutre" />
+            <strings original="Enhanced" translated="Renforcé" />
+            <strings original="Night" translated="Nuit" />
+            <strings original="Unprocessed" translated="Non traité" />
+            <strings original="Flickering Mode" translated="Mode scintillement" />
+            <strings original="60Hz" translated="60Hz" />
+            <strings original="50Hz" translated="50Hz" />
+            <strings original="Image Format" translated="Format de l'image" />
+            <strings original="Image Quality" translated="Qualité d’image" />
+            <strings original="Low" translated="Faible" />
+            <strings original="Medium" translated="Moyen" />
+            <strings original="High" translated="Haute" />
+            <strings original="Ultra" translated="Ultra" />
+            <strings original="Spot Metering Area" translated="Zone de mesure du spot" />
+            <strings original="Video Stream Aspect Ratio" translated="Ratio d’Aspect Video Stream" />
+        </locale>
+    </localization>
+</mavlinkcamera>

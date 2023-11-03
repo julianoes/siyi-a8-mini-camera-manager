@@ -1,7 +1,10 @@
 #include <iostream>
+#include <chrono>
 #include <thread>
 #include <mavsdk/mavsdk.h>
 #include <mavsdk/plugins/camera_server/camera_server.h>
+#include <mavsdk/plugins/ftp_server/ftp_server.h>
+#include <mavsdk/plugins/param_server/param_server.h>
 #include "siyi.hpp"
 
 int main(int argc, char* argv[])
@@ -19,7 +22,13 @@ int main(int argc, char* argv[])
     const std::string groundstation_connection_url{argv[2]};
     const std::string our_ip{argv[3]};
 
-    // MAVSDK setup first
+    // SIYI setup first
+    siyi::Messager siyi_messager;
+    siyi_messager.setup("192.168.144.25", 37260);
+
+    siyi::Serializer siyi_serializer;
+
+    // MAVSDK setup second
     mavsdk::Mavsdk mavsdk;
     mavsdk::Mavsdk::Configuration configuration(mavsdk::Mavsdk::ComponentType::Camera);
     mavsdk.set_configuration(configuration);
@@ -38,14 +47,37 @@ int main(int argc, char* argv[])
 
     std::cout << "Created camera server connection" << std::endl;
 
-    auto camera_server = mavsdk::CameraServer{
+    auto ftp_server = mavsdk::FtpServer{
         mavsdk.server_component_by_type(mavsdk::Mavsdk::ComponentType::Camera)};
 
-    // SIYI setup second
-    siyi::Messager siyi_messager;
-    siyi_messager.setup("192.168.144.25", 37260);
+    auto ftp_result = ftp_server.set_root_dir("./mavlink_ftp_root");
+    if (ftp_result != mavsdk::FtpServer::Result::Success) {
+        std::cerr << "Could not set FTP server root dir: " << ftp_result << std::endl;
+        return 2;
+    }
 
-    siyi::Serializer siyi_serializer;
+    auto param_server = mavsdk::ParamServer{
+        mavsdk.server_component_by_type(mavsdk::Mavsdk::ComponentType::Camera)};
+
+    param_server.provide_param_int("CAM_MODE", 0);
+    param_server.provide_param_int("STREAM_RES", 0);
+
+    param_server.subscribe_changed_param_int([&](auto param_int) {
+        if (param_int.name == "STREAM_RES") {
+            if (param_int.value == 0) {
+                std::cout << "Set stream resolution to 1280x720" << std::endl;
+                siyi_messager.send(siyi_serializer.assemble_message(siyi::StreamResolution{siyi::StreamResolution::Resolution::Res720}));
+            } else if (param_int.value == 1) {
+                std::cout << "Set stream resolution to 1920x1080" << std::endl;
+                siyi_messager.send(siyi_serializer.assemble_message(siyi::StreamResolution{siyi::StreamResolution::Resolution::Res1080}));
+            } else {
+                std::cout << "Unknown stream resolution" << std::endl;
+            }
+        }
+    });
+
+    auto camera_server = mavsdk::CameraServer{
+        mavsdk.server_component_by_type(mavsdk::Mavsdk::ComponentType::Camera)};
 
     auto ret = camera_server.set_information({
         .vendor_name = "SIYI",
@@ -57,8 +89,8 @@ int main(int argc, char* argv[])
         .horizontal_resolution_px = 4000,
         .vertical_resolution_px = 3000,
         .lens_id = 0,
-        .definition_file_version = 0, // TODO: add this
-        .definition_file_uri = "", // TODO: implement this
+        .definition_file_version = 0,
+        .definition_file_uri = "mftp://siyi_a8_mini.xml",
     });
 
     if (ret != mavsdk::CameraServer::Result::Success) {
@@ -110,19 +142,95 @@ int main(int argc, char* argv[])
             });
         });
 
+    bool recording = false;
+    std::chrono::time_point<std::chrono::steady_clock> recording_start_time{};
+
+    camera_server.subscribe_start_video([&](int32_t) {
+
+        if (recording) {
+            std::cout << "Video already started\n";
+            camera_server.respond_start_video(
+                mavsdk::CameraServer::CameraFeedback::Failed);
+
+        } else {
+            std::cout << "Start video\n";
+            siyi_messager.send(siyi_serializer.assemble_message(siyi::ToggleRecording{}));
+            std::cout << "Video started\n";
+            siyi_messager.send(siyi_serializer.assemble_message(siyi::ToggleRecording{}));
+            recording = true;
+            recording_start_time = std::chrono::steady_clock::now();
+            camera_server.respond_start_video(
+                mavsdk::CameraServer::CameraFeedback::Ok);
+        }
+    });
+
+    camera_server.subscribe_stop_video([&](int32_t) {
+
+        if (!recording) {
+            std::cout << "Video not started\n";
+            camera_server.respond_stop_video(
+                mavsdk::CameraServer::CameraFeedback::Failed);
+
+        } else {
+            std::cout << "Stop video\n";
+            siyi_messager.send(siyi_serializer.assemble_message(siyi::ToggleRecording{}));
+            recording = false;
+            camera_server.respond_stop_video(
+                mavsdk::CameraServer::CameraFeedback::Ok);
+        }
+    });
+
+    camera_server.subscribe_set_mode(
+        [&](mavsdk::CameraServer::Mode mode) {
+            switch (mode) {
+                case mavsdk::CameraServer::Mode::Photo:
+                    param_server.provide_param_int("CAM_MODE", 0);
+                    camera_server.respond_set_mode(mavsdk::CameraServer::CameraFeedback::Ok);
+                    break;
+                case mavsdk::CameraServer::Mode::Video:
+                    param_server.provide_param_int("CAM_MODE", 1);
+                    camera_server.respond_set_mode(mavsdk::CameraServer::CameraFeedback::Ok);
+                    break;
+                case mavsdk::CameraServer::Mode::Unknown:
+                    camera_server.respond_set_mode(mavsdk::CameraServer::CameraFeedback::Failed);
+                    break;
+            }
+    });
+
 
     camera_server.subscribe_capture_status([&](int32_t) {
 
         auto camera_feedback = mavsdk::CameraServer::CameraFeedback::Ok;
         auto capture_status = mavsdk::CameraServer::CaptureStatus{};
         capture_status.image_interval_s = NAN;
-        capture_status.recording_time_s = NAN;
+        capture_status.recording_time_s = recording ?
+           (static_cast<float>((std::chrono::steady_clock::now() - recording_start_time).count()) * std::chrono::steady_clock::period::num)
+                / static_cast<double>(std::chrono::steady_clock::period::den) :
+            NAN;
         capture_status.available_capacity_mib = NAN; // TODO: figure out remaining storage
         capture_status.image_status = mavsdk::CameraServer::CaptureStatus::ImageStatus::Idle;
-        capture_status.video_status = mavsdk::CameraServer::CaptureStatus::VideoStatus::Idle;
+        capture_status.video_status = recording ?
+            mavsdk::CameraServer::CaptureStatus::VideoStatus::CaptureInProgress :
+            mavsdk::CameraServer::CaptureStatus::VideoStatus::Idle;
         capture_status.image_count = images_captured;
 
         camera_server.respond_capture_status(camera_feedback, capture_status);
+    });
+
+    camera_server.subscribe_storage_information([&](int32_t) {
+
+        auto storage_information_feedback = mavsdk::CameraServer::CameraFeedback::Ok;
+        auto storage_information = mavsdk::CameraServer::StorageInformation{};
+        storage_information.used_storage_mib = NAN; // TODO
+        storage_information.available_storage_mib = NAN; // TODO
+        storage_information.total_storage_mib = NAN; // TODO
+        storage_information.storage_status = mavsdk::CameraServer::StorageInformation::StorageStatus::Formatted;
+        storage_information.storage_id = 1;
+        storage_information.storage_type = mavsdk::CameraServer::StorageInformation::StorageType::Microsd;
+
+        camera_server.respond_storage_information(
+            storage_information_feedback,
+            storage_information);
     });
 
     // Run as a server and never quit
