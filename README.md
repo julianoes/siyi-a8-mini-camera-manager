@@ -20,7 +20,11 @@ We need to set up a static IP for Ethernet in order to talk to SIYI:
 Edit the file `/etc/dhcpcd.conf`:
 
 ```
-/etc/dhcpcd.conf
+interface eth0
+static ip_address=192.168.144.20/24
+static routers=192.168.144.20
+static domain_name_servers=8.8.8.8
+nogateway
 ```
 
 To enable it, just unplug Ethernet and plug it back in.
