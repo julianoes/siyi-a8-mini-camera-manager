@@ -29,9 +29,7 @@ int main(int argc, char* argv[])
     siyi::Serializer siyi_serializer;
 
     // MAVSDK setup second
-    mavsdk::Mavsdk mavsdk;
-    mavsdk::Mavsdk::Configuration configuration(mavsdk::Mavsdk::ComponentType::Camera);
-    mavsdk.set_configuration(configuration);
+    mavsdk::Mavsdk mavsdk{mavsdk::Mavsdk::Configuration{mavsdk::Mavsdk::ComponentType::Camera}};
 
     auto result = mavsdk.add_any_connection(mavsdk_connection_url, mavsdk::ForwardingOption::ForwardingOn);
     if (result != mavsdk::ConnectionResult::Success) {

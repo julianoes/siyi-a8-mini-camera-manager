@@ -124,16 +124,11 @@ The camera manager is implemented using A small application on top of MAVSDK the
 
 ### Get MAVSDK
 
-Currently MAVSDK is built from source for this step. Once released it will be a .deb package to install.
+Download the latest MAVSDK release as a .deb. For Raspberry Pi 4 running a 64bit image, this is using the package for the `arm64` architecture:
 
 ```
-mkdir -p ~/src
-cd src
-git clone https://github.com/mavlink/MAVSDK.git
-cd
-git switch add_more_camera_function_rebased
-git submodule update --init --recursive
-cmake -Bbuild -H. -DCMAKE_INSTALL_PREFIX=install
+wget https://github.com/mavlink/MAVSDK/releases/download/v2.0.1/libmavsdk-dev_2.0.1_debian11_arm64.deb
+sudo dpkg -i libmavsdk-dev_2.0.1_debian11_arm64.deb
 ```
 
 ### Build
@@ -143,19 +138,21 @@ Clone or copy this repo on to the the RPi:
 Then build:
 ```
 cd camera-manager
-cmake -Bbuild -S. -DCMAKE_PREFIX_PATH=~/src/MAVSDK/install
-cmake --build build
+cmake -Bbuild -S.
+cmake --build build -j4
 ```
 
 ### Run
 
-And run it:
-```
-build/camera_manager serial:///dev/serial/to/pixhawk 192.168.x.y
-```
+And run it, passing as positional arguments:
+- How MAVSDK should connect to the Pixhawk, for serial: `serial:///dev/serial/to/pixhawk:baudrate`:
+- Where MAVSDK should forward MAVLink traffic to (e.g. to QGroundControl): `udp://some.ip.x.y:port`
+- Our IP (where RTSP video is available): `our.ip.x.y`
 
-And replace the serial device used, as explained below.
-Also replace the IP with the IP of the RPi to be used by the ground station.
+E.g.
+```
+build/camera_manager serial:///dev/serial/by-id/usb-FTDI_FT232R_USB_UART_A907CB4L-if00-port0:3000000 udp://192.168.1.51:14550 192.168.1.29
+```
 
 ## Pixhawk connection
 
@@ -163,7 +160,7 @@ There are at least three ways to connect a Pixhawk to the RPi 4:
 
 ### 1. Connect to RPi serial pins
 
-Connect Telem1 to the RPi's pin header pin 8 (GPIO14, UART Tx) and pin 10 (GPIO15, UART Rx), and GND.
+Connect Telem 2 to the RPi's pin header pin 8 (GPIO14, UART Tx) and pin 10 (GPIO15, UART Rx), and GND.
 
 Note that this requires bluetooth to be disabled.
 
@@ -186,7 +183,7 @@ Note that a user must be in the group `dialout` to have access.
 
 ### 2. Connect using FTDI cable
 
-Connect Telem1 to an FTDI cable plugged into the RPi. The serial device should be on `/dev/ttyUSB0` as well as `/dev/serial/by-id/usb-FTDI_...`, e.g.:
+Connect Telem 2 to an FTDI cable plugged into the RPi. The serial device should be on `/dev/ttyUSB0` as well as `/dev/serial/by-id/usb-FTDI_...`, e.g.:
 
 ```
 ls -l /dev/serial/by-id/ grep FTDI
@@ -205,3 +202,25 @@ In that case the serial device should show up as `/dev/ttACM0`.
 ## Pixhawk firmware
 
 This currently only properly works with PX4 built from source from the `main` branch. The reason is that forwarding is broken with v1.14.0 and earlier. The plan is to fix this for v1.14.1.
+
+## Enable Telem 2
+
+For case 1 and 2, we need to configure PX4 to send out MAVLink on Telem 2.
+
+To do so, set these params:
+- [MAV_1_CONFIG](https://docs.px4.io/v1.14/en/advanced_config/parameter_reference.html#MAV_1_CONFIG) to Telem 2 (102). Then restart the Pixhawk!
+- [MAV_1_FLOW_CTRL](https://docs.px4.io/v1.14/en/advanced_config/parameter_reference.html#MAV_1_FLOW_CTRL) to On or Off depending on whether you have RTS and CTS connected.
+- [SER_TEL2_BAUD](https://docs.px4.io/v1.14/en/advanced_config/parameter_reference.html#SER_TEL2_BAUD) to 3000000.
+
+## Connect using QGroundControl
+
+You can now try to connect using QGroundControl. Make sure to use the latest release. I've tested it using 4.3.0.
+
+If everything works you should:
+
+- See it connect to the Pixhawk.
+- Display the video stream.
+- Allow to take pictures, and record video (they should appear on the SD card).
+- Show the camera interace and settings. The only settings available for now are the streaming resolution.
+
+![QGroundControl camera settings screenshot](docs/qgroundcontrol-camera-screenshot.png)
