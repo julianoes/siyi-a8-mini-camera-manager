@@ -4,10 +4,12 @@ Camera Manager for SIYI A8 mini for RPi based on MAVSDK.
 
 ## Prerequisites
 
-This tutorial is using a Raspberry Pi 4 with [Raspberry Pi OS](https://www.raspberrypi.com/software/) 64 bits (based on Debian Bullseye)
-accessible over WiFi using ssh.
+This tutorial is using a Raspberry Pi 4 (or 5) with [Raspberry Pi OS](https://www.raspberrypi.com/software/) 64 bits (based on Debian Bullseye or Bookworm) accessible over WiFi using ssh.
 
-If you haven't already, I suggest flashing the RPi's SD card using the RPi flasher. It allows you to set up login passwords, WiFi passwords and ssh support right there before flashing. Connect it to your WiFi, find the IP using your router's web UI, or [look for open ssh ports to find the IP](https://serverfault.com/a/376895). If you have a hard time finding it, consider doing an nmap call before connecting it, and after and then diffing the output.
+If you haven't already, I suggest flashing the RPi's SD card using the [RPi imager](https://github.com/raspberrypi/rpi-imager/). It allows you to set up login passwords, WiFi passwords and ssh support right there before flashing. Connect it to your WiFi, find the IP using your router's web UI, or [look for open ssh ports to find the IP](https://serverfault.com/a/376895). If you have a hard time finding it, consider doing an nmap call before connecting it, and after and then diffing the output.
+
+> [!NOTE]
+> If the automatic WiFi connection doesn't work, try the [latest version of rpi-imager](https://github.com/raspberrypi/rpi-imager/releases) from the release page instead of the system installed one.
 
 ## Connect to SIYI camera
 
@@ -16,6 +18,8 @@ If you haven't already, I suggest flashing the RPi's SD card using the RPi flash
 Connect the SIYI camera using the Ethernet adapter cable and an Ethernet cable into the RPi.
 
 We need to set up a static IP for Ethernet in order to talk to SIYI:
+
+### Debian Bullseye - dhcpcd
 
 Edit the file `/etc/dhcpcd.conf`:
 
@@ -28,6 +32,30 @@ nogateway
 ```
 
 To enable it, just unplug Ethernet and plug it back in.
+
+### Debian Bookworm - NetworkManager
+
+To set the ethernet connection to static, use `nmcli`.
+
+First, find the name:
+
+```
+sudo nmcli connection show
+NAME                UUID                                  TYPE      DEVICE
+preconfigured       XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX  wifi      wlan0
+lo                  XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX  loopback  lo
+Wired connection 1  XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX  ethernet  --
+```
+
+Now, set the IP for this `Wired connection 1`:
+```
+sudo nmcli connection modify 'Wired connection 1' connection.autoconnect yes ipv4.method manual ipv4.address 192.168.144.20/24
+```
+
+The settings are saved to `/etc/NetworkManager/system-connections/Wired connection 1.nmconnection` and persist reboots.
+
+
+### Verify IP and connection
 
 You can check the IP used:
 
