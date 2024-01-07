@@ -257,3 +257,12 @@ If everything works you should:
 - Show the camera interace and settings. The only settings available for now are the streaming resolution.
 
 ![QGroundControl camera settings screenshot](docs/qgroundcontrol-camera-screenshot.png)
+
+## Troubleshooting
+
+### It doesn't work, video does not appear
+
+This could have a couple of reasons:
+
+- Are both processes running, the rtsp-rebroadcast as well as the camera-manager?
+- Are all arguments to camera-manager correct?
