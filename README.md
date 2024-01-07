@@ -99,10 +99,15 @@ In order to run the program, you can build it on device for prototyping (or use 
 Install the gstreamer dependencies:
 
 ```
-sudo apt install libgstreamer1.0-dev libgstrtspserver-1.0-dev build-essential cmake
+sudo apt install libgstreamer1.0-dev libgstrtspserver-1.0-dev build-essential cmake git
 ```
 
 Get the source code, which is part of this repository, either using `scp`, or via a `git clone`.
+
+
+```
+git clone https://github.com/julianoes/siyi-a8-mini-camera-manager.git
+```
 
 Then build it on the RPi:
 
