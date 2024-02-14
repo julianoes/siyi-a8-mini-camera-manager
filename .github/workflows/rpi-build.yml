@@ -1,0 +1,33 @@
+name: Build for RPi
+
+on:
+  push:
+    branches:
+    - 'main'
+    tags:
+    - 'v*'
+  pull_request:
+    branches:
+    - '*'
+
+jobs:
+  build:
+    name: Build executables
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - uses: uraimo/run-on-arch-action@v2
+        name: Run commands
+        id: runcmd
+        with:
+          arch: aarch64
+          distro: bullseye
+          githubToken: ${{ github.token }}
+          run: |
+            apt-get update && apt-get install -y libgstreamer1.0-dev libgstrtspserver-1.0-dev build-essential cmake git wget
+            wget https://github.com/mavlink/MAVSDK/releases/download/v2.2.0/libmavsdk-dev_2.2.0_debian11_arm64.deb
+            dpkg -i libmavsdk-dev_2.2.0_debian11_arm64.deb
+            cmake -Bbuild -S.
+            cmake --build build -j$(nproc)
