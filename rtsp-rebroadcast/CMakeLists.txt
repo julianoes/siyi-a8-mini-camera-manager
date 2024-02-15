@@ -23,3 +23,5 @@ target_include_directories(rtsp_rebroadcast SYSTEM PRIVATE
 target_link_libraries(rtsp_rebroadcast
     ${GST_LIBRARIES}
 )
+
+install(TARGETS rtsp_rebroadcast)
