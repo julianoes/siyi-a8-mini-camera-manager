@@ -62,11 +62,13 @@ common_args="--chdir ${working_dir}/install \
              --version ${version} \
              --maintainer julian@oes.ch \
              --url https://github.com/julianoes/siyi-a8-mini-camera-manager \
-             --license Apache-2.0 license \
+             --license Apache-2.0-license \
              --after-install ${working_dir}/run_ldconfig \
              --after-remove ${working_dir}/run_ldconfig \
              --force \
              -a ${package_arch}"
+
+echo "common_args: ${common_args}"
 
 if cat /etc/os-release | grep 'Ubuntu'
 then
