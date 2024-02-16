@@ -10,10 +10,13 @@ add_library(siyi
     siyi_crc.cpp
 )
 
+install(TARGETS siyi)
 
 add_executable(camera_manager
     camera_manager.cpp
 )
+
+install(TARGETS camera_manager)
 
 find_package(MAVSDK REQUIRED)
 
@@ -33,6 +36,8 @@ target_link_libraries(siyi_cli
 )
 
 target_compile_options(siyi_cli PRIVATE -Wall -Wextra)
+
+install(TARGETS siyi_cli)
 
 include(CTest)
 

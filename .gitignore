@@ -1,1 +1,4 @@
 build
+install
+debian/changelog
+*.deb
