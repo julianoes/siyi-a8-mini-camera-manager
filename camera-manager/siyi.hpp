@@ -13,7 +13,7 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <unistd.h>
-#include <errno.h>
+#include <cerrno>
 
 
 #include "siyi_crc.hpp"
@@ -25,11 +25,11 @@ std::ostream& operator<<(std::ostream& str, const std::vector<uint8_t>& bytes);
 template<typename PayloadType>
 class Payload {
 public:
-    std::vector<std::uint8_t> bytes() const {
+    [[nodiscard]] std::vector<std::uint8_t> bytes() const {
         return static_cast<const PayloadType*>(this)->bytes_impl();
     }
 
-    uint8_t cmd_id() const {
+    [[nodiscard]] uint8_t cmd_id() const {
         return static_cast<const PayloadType*>(this)->cmd_id_impl();
     }
 
@@ -43,12 +43,12 @@ class FirmwareVersion : public Payload<FirmwareVersion> {
 public:
     FirmwareVersion() = default;
 
-    std::vector<std::uint8_t> bytes_impl() const {
+    static std::vector<std::uint8_t> bytes_impl() {
         std::vector<std::uint8_t> result;
         return result;
     }
 
-    uint8_t cmd_id_impl() const {
+    static uint8_t cmd_id_impl() {
         return 0x01;
     }
 };
@@ -57,13 +57,13 @@ class GimbalCenter : public Payload<GimbalCenter> {
 public:
     GimbalCenter() = default;
 
-    std::vector<std::uint8_t> bytes_impl() const {
+    [[nodiscard]] std::vector<std::uint8_t> bytes_impl() const {
         std::vector<std::uint8_t> result;
         result.push_back(_center_pos);
         return result;
     }
 
-    uint8_t cmd_id_impl() const {
+    static uint8_t cmd_id_impl() {
         return 0x08;
     }
 
@@ -78,14 +78,14 @@ public:
     , _turn_pitch(turn_pitch)
     {}
 
-    std::vector<std::uint8_t> bytes_impl() const {
+    [[nodiscard]] std::vector<std::uint8_t> bytes_impl() const {
         std::vector<std::uint8_t> result;
         result.push_back(_turn_yaw);
         result.push_back(_turn_pitch);
         return result;
     }
 
-    uint8_t cmd_id_impl() const {
+    static uint8_t cmd_id_impl() {
         return 0x07;
     }
 
@@ -98,13 +98,13 @@ class TakePicture : public Payload<TakePicture> {
 public:
     TakePicture() = default;
 
-    std::vector<std::uint8_t> bytes_impl() const {
+    [[nodiscard]] std::vector<std::uint8_t> bytes_impl() const {
         std::vector<std::uint8_t> result;
         result.push_back(_func_type);
         return result;
     }
 
-    uint8_t cmd_id_impl() const {
+    static uint8_t cmd_id_impl() {
         return 0x0C;
     }
 
@@ -116,13 +116,13 @@ class ToggleRecording : public Payload<ToggleRecording> {
 public:
     ToggleRecording() = default;
 
-    std::vector<std::uint8_t> bytes_impl() const {
+    [[nodiscard]] std::vector<std::uint8_t> bytes_impl() const {
         std::vector<std::uint8_t> result;
         result.push_back(_func_type);
         return result;
     }
 
-    uint8_t cmd_id_impl() const {
+    static uint8_t cmd_id_impl() {
         return 0x0C;
     }
 
@@ -134,13 +134,13 @@ class StreamSettings : public Payload<StreamSettings> {
 public:
     StreamSettings() = default;
 
-    std::vector<std::uint8_t> bytes_impl() const {
+    [[nodiscard]] std::vector<std::uint8_t> bytes_impl() const {
         std::vector<std::uint8_t> result;
         result.push_back(_stream_type);
         return result;
     }
 
-    uint8_t cmd_id_impl() const {
+    static uint8_t cmd_id_impl() {
         return 0x20;
     }
 
@@ -155,7 +155,7 @@ public:
         Res1080,
     };
 
-    StreamResolution(Resolution resolution) {
+    explicit StreamResolution(Resolution resolution) {
         switch (resolution) {
             case Resolution::Res720:
                 _resolution_l = 1280;
@@ -168,7 +168,7 @@ public:
         }
     }
 
-    std::vector<std::uint8_t> bytes_impl() const {
+    [[nodiscard]] std::vector<std::uint8_t> bytes_impl() const {
         std::vector<std::uint8_t> result;
         result.push_back(_stream_type);
         result.push_back(_video_enc_type);
@@ -182,7 +182,7 @@ public:
         return result;
     }
 
-    uint8_t cmd_id_impl() const {
+    static uint8_t cmd_id_impl() {
         return 0x21;
     }
 
@@ -191,7 +191,7 @@ private:
     const uint8_t _video_enc_type{2}; // H265
     uint16_t _resolution_l{0};
     uint16_t _resolution_h{0};
-    const uint16_t _video_bitrate{4000};
+    const uint16_t _video_bitrate{4000}; // Max bitrate value that gets accepted.
     const uint8_t _reserved{0};
 };
 
@@ -227,50 +227,9 @@ public:
         return true;
     }
 
-    bool send(const std::vector<uint8_t> message)
-    {
-        // Send the UDP packet
-        const int sent = sendto(_sockfd, message.data(), message.size(), 0, (struct sockaddr *)&_addr, sizeof(_addr));
-        if (sent < 0) {
-            std::cerr << "Error sending UDP packet: " << strerror(errno) << std::endl;
-            return false;
-        }
-        return true;
-    }
+    bool send(const std::vector<uint8_t>& message);
 
-    void receive()
-    {
-        struct timeval tv;
-        tv.tv_sec = 1;
-        tv.tv_usec = 0;
-
-        fd_set readfds;
-        FD_ZERO(&readfds);
-        FD_SET(_sockfd, &readfds);
-
-        int ret = select(_sockfd+1, &readfds, NULL, NULL, &tv);
-        if (ret > 0) {
-            std::cout << "Something should be available: " << std::endl;
-
-            std::vector<uint8_t> buffer;
-            buffer.resize(2048);
-            ssize_t ret = recv(_sockfd, buffer.data(), buffer.size(), 0);
-            if (ret == -1) {
-                std::cerr << "Error receiving packet: " << strerror(errno) << std::endl;
-                return;
-            }
-
-            buffer.resize(ret);
-
-            std::cout << "Received: " << buffer << std::endl;
-
-        } else if (ret == 0) {
-            std::cout << "Timed out." << std::endl;
-
-        } else {
-                std::cerr << "Error with select: " << strerror(errno) << std::endl;
-        }
-    }
+    void receive() const;
 
 private:
     int _sockfd{-1};
