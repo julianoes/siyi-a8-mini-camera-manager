@@ -45,8 +45,6 @@ private:
 
 class FirmwareVersion : public Payload<FirmwareVersion> {
 public:
-    FirmwareVersion() = default;
-
     static std::vector<std::uint8_t> bytes_impl() {
         std::vector<std::uint8_t> result;
         return result;
@@ -59,8 +57,6 @@ public:
 
 class GimbalCenter : public Payload<GimbalCenter> {
 public:
-    GimbalCenter() = default;
-
     [[nodiscard]] std::vector<std::uint8_t> bytes_impl() const {
         std::vector<std::uint8_t> result;
         result.push_back(_center_pos);
@@ -100,8 +96,6 @@ private:
 
 class TakePicture : public Payload<TakePicture> {
 public:
-    TakePicture() = default;
-
     [[nodiscard]] std::vector<std::uint8_t> bytes_impl() const {
         std::vector<std::uint8_t> result;
         result.push_back(_func_type);
@@ -118,8 +112,6 @@ private:
 
 class ToggleRecording : public Payload<ToggleRecording> {
 public:
-    ToggleRecording() = default;
-
     [[nodiscard]] std::vector<std::uint8_t> bytes_impl() const {
         std::vector<std::uint8_t> result;
         result.push_back(_func_type);
@@ -134,10 +126,8 @@ private:
     const std::uint8_t _func_type{2};
 };
 
-class StreamSettings : public Payload<StreamSettings> {
+class GetStreamSettings : public Payload<GetStreamSettings> {
 public:
-    StreamSettings() = default;
-
     [[nodiscard]] std::vector<std::uint8_t> bytes_impl() const {
         std::vector<std::uint8_t> result;
         result.push_back(_stream_type);
@@ -152,36 +142,18 @@ private:
     const std::uint8_t _stream_type{1}; // Set video stream
 };
 
-class StreamResolution : public Payload<StreamResolution> {
+class StreamSettings : public Payload<StreamSettings> {
 public:
-    enum class Resolution {
-        Res720,
-        Res1080,
-    };
-
-    explicit StreamResolution(Resolution resolution) {
-        switch (resolution) {
-            case Resolution::Res720:
-                _resolution_l = 1280;
-                _resolution_h = 720;
-                break;
-            case Resolution::Res1080:
-                _resolution_l = 1920;
-                _resolution_h = 1080;
-                break;
-        }
-    }
-
     [[nodiscard]] std::vector<std::uint8_t> bytes_impl() const {
         std::vector<std::uint8_t> result;
         result.push_back(_stream_type);
-        result.push_back(_video_enc_type);
-        result.push_back(_resolution_l & 0xff);
-        result.push_back((_resolution_l >> 8) & 0xff);
-        result.push_back(_resolution_h & 0xff);
-        result.push_back((_resolution_h >> 8) & 0xff);
-        result.push_back(_video_bitrate & 0xff);
-        result.push_back((_video_bitrate >> 8) & 0xff);
+        result.push_back(video_enc_type);
+        result.push_back(resolution_l & 0xff);
+        result.push_back((resolution_l >> 8) & 0xff);
+        result.push_back(resolution_h & 0xff);
+        result.push_back((resolution_h >> 8) & 0xff);
+        result.push_back(video_bitrate_kbps & 0xff);
+        result.push_back((video_bitrate_kbps >> 8) & 0xff);
         result.push_back(_reserved);
         return result;
     }
@@ -190,35 +162,18 @@ public:
         return 0x21;
     }
 
-private:
-    const std::uint8_t _stream_type{1}; // Set video stream
-    const std::uint8_t _video_enc_type{2}; // H265
-    std::uint16_t _resolution_l{0};
-    std::uint16_t _resolution_h{0};
+    std::uint8_t video_enc_type{};
+    std::uint16_t resolution_l{0};
+    std::uint16_t resolution_h{0};
     // Values from 2000 to 4000 seem to be accepted for 1080.
     // Value from 1570 to 4000 seem to be accepted for 720
-    const std::uint16_t _video_bitrate{4000};
+    std::uint16_t video_bitrate_kbps{4000};
+
+private:
+    const std::uint8_t _stream_type{1}; // Set video stream
     const std::uint8_t _reserved{0};
 };
 
-
-class GetStreamResolution : public Payload<GetStreamResolution> {
-public:
-    GetStreamResolution() = default;
-
-    [[nodiscard]] std::vector<std::uint8_t> bytes_impl() const {
-        std::vector<std::uint8_t> result;
-        result.push_back(_req_stream_type);
-        return result;
-    }
-
-    static std::uint8_t cmd_id_impl() {
-        return 0x20;
-    }
-
-private:
-    const std::uint8_t _req_stream_type{1}; // Set video stream
-};
 
 class Messager
 {
@@ -282,7 +237,7 @@ private:
 };
 
 class AckFirmwareVersion : public AckPayload<AckFirmwareVersion> {
-    // Note: zoom is listed in the manual but not populated on the A8mini
+    // Note: zoom functionality is listed in the manual but not populated on the A8 mini
     public:
         bool fill_impl(const std::vector<std::uint8_t>& bytes) {
 
@@ -340,10 +295,10 @@ public:
         }
 
         _stream_type = bytes[0];
-        _video_enc_type = bytes[1];
-        _resolution_l = bytes[2] | (bytes[3] << 8);
-        _resolution_h = bytes[4] | (bytes[5] << 8);
-        _video_bitrate_kbps = bytes[6] | (bytes[7] << 8);
+        video_enc_type = bytes[1];
+        resolution_l = bytes[2] | (bytes[3] << 8);
+        resolution_h = bytes[4] | (bytes[5] << 8);
+        video_bitrate_kbps = bytes[6] | (bytes[7] << 8);
         _reserved = bytes[8];
 
         static_assert(9 == len, "length is wrong");
@@ -355,28 +310,63 @@ public:
     }
 
     friend std::ostream& operator<<(std::ostream& str, const AckGetStreamResolution& self) {
-        str << "StreamType: " << int(self._stream_type) << '\n'
-            << "VideoEncType: " << (self._video_enc_type == 1 ? "H264" : "H265") << '\n'
-            << "Resolution: " << self._resolution_l << "x" << self._resolution_h << '\n'
-            << "Bitrate: " << self._video_bitrate_kbps << " kbps\n";
+        str << "VideoEncType: " << (self.video_enc_type == 1 ? "H264" : "H265") << '\n'
+            << "Resolution: " << self.resolution_l << "x" << self.resolution_h << '\n'
+            << "Bitrate: " << self.video_bitrate_kbps << " kbps\n";
         return str;
     }
 
+    std::uint8_t video_enc_type{0};
+    std::uint16_t resolution_l{0};
+    std::uint16_t resolution_h{0};
+    std::uint16_t video_bitrate_kbps{0};
+
 private:
     std::uint8_t _stream_type{0};
-    std::uint8_t _video_enc_type{0};
-    std::uint16_t _resolution_l{0};
-    std::uint16_t _resolution_h{0};
-    std::uint16_t _video_bitrate_kbps{0};
     std::uint8_t _reserved{0};
 
     static constexpr std::size_t len =
         sizeof(_stream_type) +
-        sizeof(_video_enc_type) +
-        sizeof(_resolution_l) +
-        sizeof(_resolution_h) +
-        sizeof(_video_bitrate_kbps) +
+        sizeof(video_enc_type) +
+        sizeof(resolution_l) +
+        sizeof(resolution_h) +
+        sizeof(video_bitrate_kbps) +
         sizeof(_reserved);
+};
+
+class AckSetStreamSettings : public AckPayload<AckSetStreamSettings> {
+public:
+    bool fill_impl(const std::vector<std::uint8_t>& bytes) {
+
+        if (bytes.size() != len) {
+            std::cerr << "Length wrong: " << bytes.size() << " instead of " << len << '\n';
+            return false;
+        }
+
+        _stream_type = bytes[0];
+        result = bytes[1];
+
+        static_assert(2 == len, "length is wrong");
+        return true;
+    }
+
+    static std::uint8_t cmd_id_impl() {
+        return 0x21;
+    }
+
+    friend std::ostream& operator<<(std::ostream& str, const AckSetStreamSettings& self) {
+        str << "Result: " << int(self.result) << '\n';
+        return str;
+    }
+
+    std::uint8_t result{0};
+
+private:
+    std::uint8_t _stream_type{0};
+
+    static constexpr std::size_t len =
+            sizeof(_stream_type) +
+            sizeof(result);
 };
 
 class Serializer {

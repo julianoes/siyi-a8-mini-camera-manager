@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <mavlinkcamera>
-    <definition version="20">
+    <definition version="30">
         <model>SIYI</model>
         <vendor>A8 mini</vendor>
     </definition>
@@ -13,7 +13,31 @@
             <description>Video stream resolution</description>
             <options>
                 <option name="1280x720" value="0" />
-                <option name="1920x1080" value="1" />
+                <option name="1920x1080" value="1" >
+                    <parameterranges>
+                        <parameterrange parameter="STREAM_BITRATE">
+                            <roption name="4 Mbps" value="4000" />
+                            <roption name="3 Mbps" value="3000" />
+                            <roption name="2 Mbps" value="2000" />
+                        </parameterrange>
+                    </parameterranges>
+                </option>
+            </options>
+        </parameter>
+        <parameter name="STREAM_BITRATE" type="int32" default="2000">
+            <description>Video stream bitrate</description>
+            <options>
+                <option name="4 Mbps" value="4000" />
+                <option name="3 Mbps" value="3000" />
+                <option name="2 Mbps" value="2000" />
+                <option name="1.6 Mbps" value="1600" />
+            </options>
+        </parameter>
+        <parameter name="STREAM_CODEC" type="int32" default="0">
+            <description>Video stream codec</description>
+            <options>
+                <option name="H264" value="1" />
+                <option name="H265" value="2" />
             </options>
         </parameter>
     </parameters>
