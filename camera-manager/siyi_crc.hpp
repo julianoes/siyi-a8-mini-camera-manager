@@ -2,4 +2,8 @@
 
 #include <cstdint>
 
-uint16_t crc16_cal(uint8_t *ptr, uint32_t len, uint16_t crc_init);
+namespace siyi {
+
+std::uint16_t crc16_cal(const std::uint8_t* ptr, std::uint32_t len);
+
+} // namespace siyi

@@ -1,4 +1,4 @@
-#include "siyi.hpp"
+#include "siyi_protocol.hpp"
 #include <iostream>
 
 int main(int argc, char* argv[])
@@ -13,7 +13,13 @@ int main(int argc, char* argv[])
     siyi_messager.setup("192.168.144.25", 37260);
 
     siyi::Serializer siyi_serializer;
-    siyi_messager.receive();
+    siyi::Deserializer siyi_deserializer;
+
+    siyi_messager.send(siyi_serializer.assemble_message(siyi::GetStreamResolution{}));
+    auto maybe_ack = siyi_deserializer.disassemble_message<siyi::AckGetStreamResolution>(siyi_messager.receive());
+    if (maybe_ack) {
+        std::cout << maybe_ack.value() << std::endl;
+    }
 
     const std::string action{argv[1]};
 
@@ -50,7 +56,13 @@ int main(int argc, char* argv[])
         return 2;
     }
 
-    siyi_messager.receive();
+    (void)siyi_messager.receive();
+
+    siyi_messager.send(siyi_serializer.assemble_message(siyi::GetStreamResolution{}));
+    maybe_ack = siyi_deserializer.disassemble_message<siyi::AckGetStreamResolution>(siyi_messager.receive());
+    if (maybe_ack) {
+        std::cout << maybe_ack.value() << std::endl;
+    }
 
     return 0;
 }

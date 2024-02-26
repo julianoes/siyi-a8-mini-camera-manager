@@ -5,7 +5,7 @@
 #include <mavsdk/plugins/camera_server/camera_server.h>
 #include <mavsdk/plugins/ftp_server/ftp_server.h>
 #include <mavsdk/plugins/param_server/param_server.h>
-#include "siyi.hpp"
+#include "siyi_protocol.hpp"
 
 int main(int argc, char* argv[])
 {
