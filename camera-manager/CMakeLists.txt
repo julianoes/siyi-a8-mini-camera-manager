@@ -6,7 +6,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 project(camera-manager)
 
 add_library(siyi
-    siyi.cpp
+    siyi_protocol.cpp
     siyi_crc.cpp
 )
 

@@ -1,7 +1,7 @@
 
 #include <assert.h>
 
-#include "siyi.hpp"
+#include "siyi_protocol.hpp"
 
 static void assemble_example_message()
 {

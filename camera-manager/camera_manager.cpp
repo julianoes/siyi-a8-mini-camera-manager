@@ -5,7 +5,8 @@
 #include <mavsdk/plugins/camera_server/camera_server.h>
 #include <mavsdk/plugins/ftp_server/ftp_server.h>
 #include <mavsdk/plugins/param_server/param_server.h>
-#include "siyi.hpp"
+#include "siyi_protocol.hpp"
+#include "siyi_camera.hpp"
 
 int main(int argc, char* argv[])
 {
@@ -27,6 +28,12 @@ int main(int argc, char* argv[])
     siyi_messager.setup("192.168.144.25", 37260);
 
     siyi::Serializer siyi_serializer;
+    siyi::Deserializer siyi_deserializer;
+    siyi::Camera siyi_camera{siyi_serializer, siyi_deserializer, siyi_messager};
+    if (!siyi_camera.init()) {
+        std::cerr << "Could not initialize camera" << std::endl;
+        return 3;
+    }
 
     // MAVSDK setup second
     mavsdk::Mavsdk mavsdk{mavsdk::Mavsdk::Configuration{mavsdk::Mavsdk::ComponentType::Camera}};
@@ -48,7 +55,7 @@ int main(int argc, char* argv[])
     auto ftp_server = mavsdk::FtpServer{
         mavsdk.server_component_by_type(mavsdk::Mavsdk::ComponentType::Camera)};
 
-    auto ftp_result = ftp_server.set_root_dir("./mavlink_ftp_root");
+    auto ftp_result = ftp_server.set_root_dir("camera-manager/mavlink_ftp_root");
     if (ftp_result != mavsdk::FtpServer::Result::Success) {
         std::cerr << "Could not set FTP server root dir: " << ftp_result << std::endl;
         return 2;
@@ -57,19 +64,57 @@ int main(int argc, char* argv[])
     auto param_server = mavsdk::ParamServer{
         mavsdk.server_component_by_type(mavsdk::Mavsdk::ComponentType::Camera)};
 
+    int32_t stream_res = 0;
+    switch (siyi_camera.resolution()) {
+        case siyi::Camera::Resolution::Res1280x720:
+            stream_res = 0;
+            break;
+        case siyi::Camera::Resolution::Res1920x1080:
+            stream_res = 1;
+            break;
+    }
+
+    int32_t stream_codec = 0;
+    switch (siyi_camera.codec()) {
+        case siyi::Camera::Codec::H264:
+            stream_codec = 1;
+            break;
+        case siyi::Camera::Codec::H265:
+            stream_codec = 2;
+            break;
+    }
+
     param_server.provide_param_int("CAM_MODE", 0);
-    param_server.provide_param_int("STREAM_RES", 0);
+    param_server.provide_param_int("STREAM_RES", stream_res);
+    param_server.provide_param_int("STREAM_BITRATE", siyi_camera.bitrate());
+    param_server.provide_param_int("STREAM_CODEC", stream_codec);
 
     param_server.subscribe_changed_param_int([&](auto param_int) {
         if (param_int.name == "STREAM_RES") {
             if (param_int.value == 0) {
                 std::cout << "Set stream resolution to 1280x720" << std::endl;
-                siyi_messager.send(siyi_serializer.assemble_message(siyi::StreamResolution{siyi::StreamResolution::Resolution::Res720}));
+                (void)siyi_camera.set_resolution(siyi::Camera::Resolution::Res1280x720);
+                // TODO: should we ack/nack?
             } else if (param_int.value == 1) {
                 std::cout << "Set stream resolution to 1920x1080" << std::endl;
-                siyi_messager.send(siyi_serializer.assemble_message(siyi::StreamResolution{siyi::StreamResolution::Resolution::Res1080}));
+                (void)siyi_camera.set_resolution(siyi::Camera::Resolution::Res1920x1080);
+                // TODO: should we ack/nack?
             } else {
                 std::cout << "Unknown stream resolution" << std::endl;
+            }
+        } else if (param_int.name == "STREAM_BITRATE") {
+            std::cout << "Set bitrate to " << param_int.value << std::endl;
+            (void)siyi_camera.set_bitrate(param_int.value);
+
+        } else if (param_int.name == "STREAM_CODEC") {
+            if (param_int.value == 1) {
+                std::cout << "Set codec to H264" << std::endl;
+                (void)siyi_camera.set_codec(siyi::Camera::Codec::H264);
+            } else if (param_int.value == 2) {
+                std::cout << "Set codec to H265" << std::endl;
+                (void)siyi_camera.set_codec(siyi::Camera::Codec::H265);
+            } else {
+                std::cout << "Unknown codec" << std::endl;
             }
         }
     });
@@ -87,7 +132,7 @@ int main(int argc, char* argv[])
         .horizontal_resolution_px = 4000,
         .vertical_resolution_px = 3000,
         .lens_id = 0,
-        .definition_file_version = 0,
+        .definition_file_version = 30,
         .definition_file_uri = "mftp://siyi_a8_mini.xml",
     });
 
@@ -203,7 +248,7 @@ int main(int argc, char* argv[])
         capture_status.image_interval_s = NAN;
         capture_status.recording_time_s = recording ?
            (static_cast<float>((std::chrono::steady_clock::now() - recording_start_time).count()) * std::chrono::steady_clock::period::num)
-                / static_cast<double>(std::chrono::steady_clock::period::den) :
+                / static_cast<float>(std::chrono::steady_clock::period::den) :
             NAN;
         capture_status.available_capacity_mib = NAN; // TODO: figure out remaining storage
         capture_status.image_status = mavsdk::CameraServer::CaptureStatus::ImageStatus::Idle;
