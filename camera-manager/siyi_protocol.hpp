@@ -281,6 +281,55 @@ private:
     [[nodiscard]] AckPayloadType& derived() { return static_cast<AckPayloadType&>(*this); }
 };
 
+class AckFirmwareVersion : public AckPayload<AckFirmwareVersion> {
+    // Note: zoom is listed in the manual but not populated on the A8mini
+    public:
+        bool fill_impl(const std::vector<std::uint8_t>& bytes) {
+
+            if (bytes.size() != len) {
+                std::cerr << "Length wrong: " << bytes.size() << " instead of " << len << '\n';
+                return false;
+            }
+
+            code_board_ver_major = bytes[2];
+            code_board_ver_minor = bytes[1];
+            code_board_ver_patch = bytes[0];
+            gimbal_firmware_ver_major = bytes[6];
+            gimbal_firmware_ver_minor = bytes[5];
+            gimbal_firmware_ver_patch = bytes[4];
+
+            static_assert(8 == len, "length is wrong");
+            return true;
+        }
+
+        static std::uint8_t cmd_id_impl() {
+            return 0x01;
+        }
+
+        friend std::ostream& operator<<(std::ostream& str, const AckFirmwareVersion& self) {
+            str << "Camera version: "
+                << int(self.code_board_ver_major) << '.'
+                << int(self.code_board_ver_minor) << '.'
+                << int(self.code_board_ver_patch) << '\n'
+                << "Gimbal version: "
+                << int(self.gimbal_firmware_ver_major) << '.'
+                << int(self.gimbal_firmware_ver_minor) << '.'
+                << int(self.gimbal_firmware_ver_patch) << '\n';
+            return str;
+        }
+
+        std::uint8_t code_board_ver_major{0};
+        std::uint8_t code_board_ver_minor{0};
+        std::uint8_t code_board_ver_patch{0};
+        std::uint8_t gimbal_firmware_ver_major{0};
+        std::uint8_t gimbal_firmware_ver_minor{0};
+        std::uint8_t gimbal_firmware_ver_patch{0};
+    private:
+
+        static constexpr std::size_t len =
+                sizeof(uint32_t) + sizeof(uint32_t);
+    };
+
 class AckGetStreamResolution : public AckPayload<AckGetStreamResolution> {
 public:
     bool fill_impl(const std::vector<std::uint8_t>& bytes) {

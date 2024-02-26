@@ -51,6 +51,8 @@ std::vector<std::uint8_t> Messager::receive() const
 
         result.resize(recv_ret);
 
+        // std::cout << "Received: " << result << std::endl;
+
     } else if (select_ret == 0) {
         std::cout << "Timed out." << std::endl;
 
