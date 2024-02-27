@@ -17,6 +17,7 @@ add_executable(camera_manager
 )
 
 install(TARGETS camera_manager)
+install(FILES mavlink_ftp_root/siyi_a8_mini.xml DESTINATION share/mavlink_ftp_root)
 
 find_package(MAVSDK REQUIRED)
 

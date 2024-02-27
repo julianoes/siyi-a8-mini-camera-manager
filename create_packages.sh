@@ -70,7 +70,7 @@ common_args="--chdir ${working_dir}/install \
 
 echo "common_args: ${common_args}"
 
-if cat /etc/os-release | grep 'Ubuntu'
+if cat /etc/os-release | grep -e 'Ubuntu' -e 'Mint'
 then
     echo "Building Ubuntu DEB package"
     fpm ${common_args} \
