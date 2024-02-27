@@ -1,13 +1,26 @@
 #include <iostream>
 #include <chrono>
 #include <thread>
-#include <filesystem>
 #include <mavsdk/mavsdk.h>
 #include <mavsdk/plugins/camera_server/camera_server.h>
 #include <mavsdk/plugins/ftp_server/ftp_server.h>
 #include <mavsdk/plugins/param_server/param_server.h>
 #include "siyi_protocol.hpp"
 #include "siyi_camera.hpp"
+
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <unistd.h>
+
+bool is_dir(const std::string& path)
+{
+    struct stat statbuf;
+    if (stat(path.c_str(), &statbuf) != 0) {
+        // Error getting information about the path
+        return false;
+    }
+    return (S_ISDIR(statbuf.st_mode) != 0);
+}
 
 int main(int argc, char* argv[])
 {
@@ -58,7 +71,7 @@ int main(int argc, char* argv[])
 
     // If running locally when built first, otherwise use system-wise:
     std::string path = "./camera-manager/mavlink_ftp_root";
-    if (!std::filesystem::exists(path)) {
+    if (!is_dir(path)) {
         path = "/usr/share/mavlink_ftp_root";
     }
 
