@@ -1,6 +1,7 @@
 #include <iostream>
 #include <chrono>
 #include <thread>
+#include <filesystem>
 #include <mavsdk/mavsdk.h>
 #include <mavsdk/plugins/camera_server/camera_server.h>
 #include <mavsdk/plugins/ftp_server/ftp_server.h>
@@ -55,7 +56,15 @@ int main(int argc, char* argv[])
     auto ftp_server = mavsdk::FtpServer{
         mavsdk.server_component_by_type(mavsdk::Mavsdk::ComponentType::Camera)};
 
-    auto ftp_result = ftp_server.set_root_dir("camera-manager/mavlink_ftp_root");
+    // If running locally when built first, otherwise use system-wise:
+    std::string path = "./camera-manager/mavlink_ftp_root";
+    if (!std::filesystem::exists(path)) {
+        path = "/usr/share/mavlink_ftp_root";
+    }
+
+    std::cout << "Using FTP root: " << path << " to serve camera xml file.";
+
+    auto ftp_result = ftp_server.set_root_dir(path);
     if (ftp_result != mavsdk::FtpServer::Result::Success) {
         std::cerr << "Could not set FTP server root dir: " << ftp_result << std::endl;
         return 2;
