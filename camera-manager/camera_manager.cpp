@@ -62,7 +62,7 @@ int main(int argc, char* argv[])
         path = "/usr/share/mavlink_ftp_root";
     }
 
-    std::cout << "Using FTP root: " << path << " to serve camera xml file.";
+    std::cout << "Using FTP root: " << path << " to serve camera xml file." << std::endl;
 
     auto ftp_result = ftp_server.set_root_dir(path);
     if (ftp_result != mavsdk::FtpServer::Result::Success) {
