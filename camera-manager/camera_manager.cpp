@@ -95,7 +95,7 @@ int main(int argc, char* argv[])
 
     param_server.provide_param_int("CAM_MODE", 0);
     param_server.provide_param_int("STREAM_RES", stream_res);
-    param_server.provide_param_int("STREAM_BITRATE", siyi_camera.bitrate());
+    param_server.provide_param_int("STREAM_BITRATE", static_cast<int32_t>(siyi_camera.bitrate()));
     param_server.provide_param_int("STREAM_CODEC", stream_codec);
 
     param_server.subscribe_changed_param_int([&](auto param_int) {
