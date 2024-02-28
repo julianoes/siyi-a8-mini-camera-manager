@@ -37,15 +37,13 @@ public:
 
     void print_stream_settings()
     {
-        std::cout << "---\n"
-                  << "Stream settings: \n"
+        std::cout << "Stream settings: \n"
                   << _stream_settings;
     }
 
     void print_version()
     {
-        std::cout << "---\n"
-                  << _version;
+        std::cout << _version;
     }
 
     enum class Codec {

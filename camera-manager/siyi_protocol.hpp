@@ -310,9 +310,9 @@ public:
     }
 
     friend std::ostream& operator<<(std::ostream& str, const AckGetStreamResolution& self) {
-        str << "VideoEncType: " << (self.video_enc_type == 1 ? "H264" : "H265") << '\n'
-            << "Resolution: " << self.resolution_l << "x" << self.resolution_h << '\n'
-            << "Bitrate: " << self.video_bitrate_kbps << " kbps\n";
+        str << "Resolution: " << self.resolution_l << "x" << self.resolution_h << '\n'
+            << "Bitrate: " << self.video_bitrate_kbps << " kbps\n"
+            << "Codec: " << (self.video_enc_type == 1 ? "H264" : "H265") << '\n';
         return str;
     }
 
