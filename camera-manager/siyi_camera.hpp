@@ -56,6 +56,13 @@ public:
         Res1920x1080,
     };
 
+    enum class Zoom {
+        Stop,
+        In,
+        Out,
+    };
+
+
     [[nodiscard]] Resolution resolution() const {
         if (_stream_settings.resolution_h == 1080 && _stream_settings.resolution_l == 1920) {
             return Resolution::Res1920x1080;
@@ -190,6 +197,40 @@ public:
         return _stream_settings.video_bitrate_kbps;
     }
 
+    bool zoom(Zoom option)
+    {
+        auto manual_zoom = siyi::ManualZoom{};
+
+        switch (option) {
+            case Zoom::In:
+                manual_zoom.zoom = 1;
+                break;
+            case Zoom::Out:
+                manual_zoom.zoom = -1;
+                break;
+            case Zoom::Stop:
+                manual_zoom.zoom = 0;
+                break;
+        }
+
+        _messager.send(_serializer.assemble_message(manual_zoom));
+
+        // We don't seem to be getting anything back.
+        //const auto maybe_ack_manual_zoom =
+        //        _deserializer.disassemble_message<siyi::AckManualZoom>(_messager.receive());
+
+        //if (maybe_ack_manual_zoom) {
+        //    std::cerr << "current zoom: " << maybe_ack_manual_zoom.value().zoom_multiple << '\n';
+        //    _ack_manual_zoom = maybe_ack_manual_zoom.value();
+        //    return false;
+        //}
+        return true;
+    }
+
+    [[nodiscard]] unsigned zoom() const {
+        return _ack_manual_zoom.zoom_multiple;
+    }
+
 private:
     Serializer& _serializer;
     Deserializer& _deserializer;
@@ -197,6 +238,7 @@ private:
 
     AckFirmwareVersion _version{};
     AckGetStreamResolution _stream_settings{};
+    AckManualZoom _ack_manual_zoom{};
 };
 
 } // siyi

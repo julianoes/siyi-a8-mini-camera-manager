@@ -174,6 +174,20 @@ private:
     const std::uint8_t _reserved{0};
 };
 
+class ManualZoom : public Payload<ManualZoom> {
+public:
+    [[nodiscard]] std::vector<std::uint8_t> bytes_impl() const {
+        std::vector<std::uint8_t> result;
+        result.push_back(zoom);
+        return result;
+    }
+
+    static std::uint8_t cmd_id_impl() {
+        return 0x05;
+    }
+
+    std::int8_t zoom{};
+};
 
 class Messager
 {
@@ -367,6 +381,36 @@ private:
     static constexpr std::size_t len =
             sizeof(_stream_type) +
             sizeof(result);
+};
+
+class AckManualZoom : public AckPayload<AckManualZoom> {
+public:
+    bool fill_impl(const std::vector<std::uint8_t>& bytes) {
+
+        if (bytes.size() != len) {
+            std::cerr << "Length wrong: " << bytes.size() << " instead of " << len << '\n';
+            return false;
+        }
+
+        zoom_multiple = bytes[0] | (bytes[1] << 8);
+
+        static_assert(2 == len, "length is wrong");
+        return true;
+    }
+
+    static std::uint8_t cmd_id_impl() {
+        return 0x05;
+    }
+
+    friend std::ostream& operator<<(std::ostream& str, const AckManualZoom& self) {
+        str << "Zoom: " << int(self.zoom_multiple) << "x\n";
+        return str;
+    }
+
+    std::uint16_t zoom_multiple{0};
+
+private:
+    static constexpr std::size_t len = sizeof(zoom_multiple);
 };
 
 class Serializer {

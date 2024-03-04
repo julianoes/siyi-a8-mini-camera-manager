@@ -25,7 +25,12 @@ void print_usage(const std::string_view& bin_name)
               << "  set_codec <option>         Set stream bitrate\n"
               << "    Options:\n"
               << "      - h264 (for H264)\n"
-              << "      - h265 (for H265/HVEC)\n";
+              << "      - h265 (for H265/HVEC)\n"
+              << "  zoom <option>         Use zoom\n"
+              << "    Options:\n"
+              << "      - in (to start zooming in)\n"
+              << "      - out (to start zooming out)\n"
+              << "      - stop (to stop zooming)\n";
 }
 
 int main(int argc, char* argv[])
@@ -180,6 +185,40 @@ int main(int argc, char* argv[])
                 }
             } else {
                 std::cout << "Invalid codec" << std::endl;
+                print_usage(argv[0]);
+                return 1;
+            }
+        }
+
+    } else if (action == "zoom") {
+        if (argc >= 3) {
+            const std::string_view option{argv[2]};
+            if (option == "in") {
+                std::cout << "Zooming in..." << std::flush;
+                if (siyi_camera.zoom(siyi::Camera::Zoom::In)) {
+                    std::cout << "ok" << std::endl;
+                } else {
+                    std::cout << "failed" << std::endl;
+                    return 1;
+                }
+            } else if (option == "out") {
+                std::cout << "Zooming out..." << std::flush;
+                if (siyi_camera.zoom(siyi::Camera::Zoom::Out)) {
+                    std::cout << "ok" << std::endl;
+                } else {
+                    std::cout << "failed" << std::endl;
+                    return 1;
+                }
+            } else if (option == "stop") {
+                std::cout << "Stop zooming..." << std::flush;
+                if (siyi_camera.zoom(siyi::Camera::Zoom::Stop)) {
+                    std::cout << "ok" << std::endl;
+                } else {
+                    std::cout << "failed" << std::endl;
+                    return 1;
+                }
+            } else {
+                std::cout << "Invalid zoom command" << std::endl;
                 print_usage(argv[0]);
                 return 1;
             }
