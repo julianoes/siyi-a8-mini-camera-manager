@@ -130,7 +130,7 @@ class GetStreamSettings : public Payload<GetStreamSettings> {
 public:
     [[nodiscard]] std::vector<std::uint8_t> bytes_impl() const {
         std::vector<std::uint8_t> result;
-        result.push_back(_stream_type);
+        result.push_back(stream_type);
         return result;
     }
 
@@ -138,15 +138,14 @@ public:
         return 0x20;
     }
 
-private:
-    const std::uint8_t _stream_type{1}; // Set video stream
+    std::uint8_t stream_type{0};
 };
 
 class StreamSettings : public Payload<StreamSettings> {
 public:
     [[nodiscard]] std::vector<std::uint8_t> bytes_impl() const {
         std::vector<std::uint8_t> result;
-        result.push_back(_stream_type);
+        result.push_back(stream_type);
         result.push_back(video_enc_type);
         result.push_back(resolution_l & 0xff);
         result.push_back((resolution_l >> 8) & 0xff);
@@ -162,6 +161,7 @@ public:
         return 0x21;
     }
 
+    std::uint8_t stream_type{0};
     std::uint8_t video_enc_type{};
     std::uint16_t resolution_l{0};
     std::uint16_t resolution_h{0};
@@ -170,7 +170,6 @@ public:
     std::uint16_t video_bitrate_kbps{4000};
 
 private:
-    const std::uint8_t _stream_type{1}; // Set video stream
     const std::uint8_t _reserved{0};
 };
 

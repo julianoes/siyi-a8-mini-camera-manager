@@ -94,10 +94,13 @@ int main(int argc, char* argv[])
         case siyi::Camera::Resolution::Res1920x1080:
             stream_res = 1;
             break;
+        default:
+            std::cerr << "Unexpected stream resolution\n";
+            break;
     }
 
     int32_t stream_codec = 0;
-    switch (siyi_camera.codec()) {
+    switch (siyi_camera.codec(siyi::Camera::Type::Stream)) {
         case siyi::Camera::Codec::H264:
             stream_codec = 1;
             break;
@@ -115,26 +118,26 @@ int main(int argc, char* argv[])
         if (param_int.name == "STREAM_RES") {
             if (param_int.value == 0) {
                 std::cout << "Set stream resolution to 1280x720" << std::endl;
-                (void)siyi_camera.set_resolution(siyi::Camera::Resolution::Res1280x720);
+                (void)siyi_camera.set_resolution(siyi::Camera::Type::Stream, siyi::Camera::Resolution::Res1280x720);
                 // TODO: should we ack/nack?
             } else if (param_int.value == 1) {
                 std::cout << "Set stream resolution to 1920x1080" << std::endl;
-                (void)siyi_camera.set_resolution(siyi::Camera::Resolution::Res1920x1080);
+                (void)siyi_camera.set_resolution(siyi::Camera::Type::Stream, siyi::Camera::Resolution::Res1920x1080);
                 // TODO: should we ack/nack?
             } else {
                 std::cout << "Unknown stream resolution" << std::endl;
             }
         } else if (param_int.name == "STREAM_BITRATE") {
             std::cout << "Set bitrate to " << param_int.value << std::endl;
-            (void)siyi_camera.set_bitrate(param_int.value);
+            (void)siyi_camera.set_bitrate(siyi::Camera::Type::Stream, param_int.value);
 
         } else if (param_int.name == "STREAM_CODEC") {
             if (param_int.value == 1) {
                 std::cout << "Set codec to H264" << std::endl;
-                (void)siyi_camera.set_codec(siyi::Camera::Codec::H264);
+                (void)siyi_camera.set_codec(siyi::Camera::Type::Stream, siyi::Camera::Codec::H264);
             } else if (param_int.value == 2) {
                 std::cout << "Set codec to H265" << std::endl;
-                (void)siyi_camera.set_codec(siyi::Camera::Codec::H265);
+                (void)siyi_camera.set_codec(siyi::Camera::Type::Stream, siyi::Camera::Codec::H265);
             } else {
                 std::cout << "Unknown codec" << std::endl;
             }
