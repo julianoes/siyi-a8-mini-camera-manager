@@ -160,8 +160,8 @@ The camera manager is implemented using A small application on top of MAVSDK the
 Download the latest MAVSDK release as a .deb. For Raspberry Pi 4 running a 64bit image, this is using the package for the `arm64` architecture:
 
 ```
-wget https://github.com/mavlink/MAVSDK/releases/download/v2.0.1/libmavsdk-dev_2.0.1_debian11_arm64.deb
-sudo dpkg -i libmavsdk-dev_2.0.1_debian11_arm64.deb
+wget https://github.com/mavlink/MAVSDK/releases/download/v2.4.0/libmavsdk-dev_2.4.0_debian12_arm64.deb
+sudo dpkg -i libmavsdk-dev_2.4.0_debian12_arm64.deb
 ```
 
 ### Build
