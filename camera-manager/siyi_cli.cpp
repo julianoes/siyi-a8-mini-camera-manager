@@ -11,14 +11,20 @@ void print_usage(const std::string_view& bin_name)
               << "  take_picture                                Take a picture to SD card\n\n"
               << "  toggle_recording                            Toggle start/stop video recording to SD card\n\n"
               << "  gimbal_forward                              Set gimbal forward\n\n"
+              << "  zoom <option>                               Use zoom\n"
+              << "    Options:\n"
+              << "      - in (to start zooming in)\n"
+              << "      - out (to start zooming out)\n"
+              << "      - stop (to stop zooming)\n"
               << "\n"
               << "  get <stream|recording> settings             Show all settings for stream or recording\n\n"
+              << "\n"
               << "  set <stream|recording> resolution <option>  Set stream resolution\n\n"
               << "    Options:\n"
               << "      - 720  (for 1280x720)\n"
               << "      - 1080 (for 1920x1080)\n\n"
               << "      - 1440 (for 2560x1440, recording only)\n\n"
-              << "      - 1080 (for 4096x1920, recording only)\n\n"
+              << "      - 1920 (for 3840x1920, recording only)\n\n"
               << "  set <stream|recording> bitrate <option>     Set stream bitrate\n"
               << "    Options:\n"
               << "      - 1m (for 1.5 Mbps, only available at 1280x720)\n"
@@ -29,11 +35,7 @@ void print_usage(const std::string_view& bin_name)
               << "    Options:\n"
               << "      - h264 (for H264)\n"
               << "      - h265 (for H265/HVEC)\n"
-              << "  zoom <option>         Use zoom\n"
-              << "    Options:\n"
-              << "      - in (to start zooming in)\n"
-              << "      - out (to start zooming out)\n"
-              << "      - stop (to stop zooming)\n";
+              << "\n";
 }
 
 int main(int argc, char* argv[])
@@ -120,8 +122,8 @@ int main(int argc, char* argv[])
 
             if (setting == "resolution") {
                 if (option == "1920") {
-                    std::cout << "Set " << type_str << " resolution to 4096x2160..." << std::flush;
-                    if (siyi_camera.set_resolution(type, siyi::Camera::Resolution::Res4096x2160)) {
+                    std::cout << "Set " << type_str << " resolution to 3840x2160..." << std::flush;
+                    if (siyi_camera.set_resolution(type, siyi::Camera::Resolution::Res3840x2160)) {
                         std::cout << "ok" << std::endl;
                     } else {
                         std::cout << "failed" << std::endl;
