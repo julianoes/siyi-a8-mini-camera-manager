@@ -16,13 +16,13 @@ int main(int argc, char* argv[])
                   << "\n"
                   << "Usage: " << argv[0] << " <mavsdk connection url> <ground station connection url> <our ip>\n"
                   << "\n"
-                  << "E.g. " << argv[0] << " serial:///dev/ttyUSB0:57600 udp://192.168.1.51:14550 192.168.1.45\n";
+                  << "E.g. " << argv[0] << " serial:///dev/ttyUSB0:57600 udp://192.168.1.51:14550 rtsp://192.168.1.45:8554/live\n";
         return 1;
     }
 
     const std::string mavsdk_connection_url{argv[1]};
     const std::string groundstation_connection_url{argv[2]};
-    const std::string our_ip{argv[3]};
+    const std::string rtsp_url{argv[3]};
 
     // SIYI setup first
     siyi::Messager siyi_messager;
@@ -155,7 +155,7 @@ int main(int argc, char* argv[])
 
     ret = camera_server.set_video_streaming(mavsdk::CameraServer::VideoStreaming{
         .has_rtsp_server = true,
-        .rtsp_uri = std::string{"rtsp://"} + our_ip + std::string{":8554/live"},
+        .rtsp_uri = rtsp_url,
     });
 
     if (ret != mavsdk::CameraServer::Result::Success) {
