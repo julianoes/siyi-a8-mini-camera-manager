@@ -72,7 +72,7 @@ public:
         Res1280x720,
         Res1920x1080,
         Res2560x1440,
-        Res4096x2160,
+        Res3840x2160,
     };
 
     enum class Zoom {
@@ -96,8 +96,8 @@ public:
     }
 
     [[nodiscard]] Resolution resolution() const {
-        if (_stream_settings.resolution_h == 1920 && _stream_settings.resolution_l == 4096) {
-            return Resolution::Res4096x2160;
+        if (_stream_settings.resolution_h == 1920 && _stream_settings.resolution_l == 3840) {
+            return Resolution::Res3840x2160;
         } else if (_stream_settings.resolution_h == 1440 && _stream_settings.resolution_l == 2560) {
             return Resolution::Res2560x1440;
         } else if (_stream_settings.resolution_h == 1080 && _stream_settings.resolution_l == 1920) {
@@ -133,8 +133,8 @@ public:
         } else if (resolution == Resolution::Res2560x1440) {
             set_stream_settings.resolution_l = 2560;
             set_stream_settings.resolution_h = 1440;
-        } else if (resolution == Resolution::Res4096x2160) {
-            set_stream_settings.resolution_l = 4096;
+        } else if (resolution == Resolution::Res3840x2160) {
+            set_stream_settings.resolution_l = 3840;
             set_stream_settings.resolution_h = 2160;
         } else {
             std::cerr << "resolution invalid\n";
@@ -268,13 +268,21 @@ public:
             return false;
         }
 
-        _messager.send(_serializer.assemble_message(siyi::GetStreamSettings{}));
+        auto get_stream_settings = siyi::GetStreamSettings{};
+        get_stream_settings.stream_type = set_stream_settings.stream_type;
+        _messager.send(_serializer.assemble_message(get_stream_settings));
         const auto maybe_stream_settings =
                 _deserializer.disassemble_message<siyi::AckGetStreamResolution>(_messager.receive());
 
         if (maybe_stream_settings) {
-
-            _stream_settings = maybe_stream_settings.value();
+            switch (type) {
+                case Type::Recording:
+                    _recording_settings = maybe_stream_settings.value();
+                    break;
+                case Type::Stream:
+                    _stream_settings = maybe_stream_settings.value();
+                    break;
+            }
             return true;
         } else {
             return false;
