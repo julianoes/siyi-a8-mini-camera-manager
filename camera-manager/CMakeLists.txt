@@ -24,6 +24,7 @@ find_package(MAVSDK REQUIRED)
 target_link_libraries(camera_manager
     MAVSDK::mavsdk
     siyi
+    stdc++fs
 )
 
 target_compile_options(camera_manager PRIVATE -Wall -Wextra)

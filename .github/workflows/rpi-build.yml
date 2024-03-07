@@ -25,8 +25,9 @@ jobs:
         name: Run commands
         id: runcmd
         with:
-          arch: aarch64
-          distro: bullseye
+          arch: none
+          distro: none
+          base_image: arm64v8/debian:bookworm
           githubToken: ${{ github.token }}
           run: |
             apt-get update
