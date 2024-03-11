@@ -94,6 +94,25 @@ private:
     const int8_t _turn_pitch;
 };
 
+class SetGimbalAttitude : public Payload<SetGimbalAttitude> {
+public:
+    [[nodiscard]] std::vector<std::uint8_t> bytes_impl() const {
+        std::vector<std::uint8_t> result;
+        result.push_back(yaw_t10 & 0xff);
+        result.push_back((yaw_t10 >> 8) & 0xff);
+        result.push_back(pitch_t10 & 0xff);
+        result.push_back((pitch_t10 >> 8) & 0xff);
+        return result;
+    }
+
+    static std::uint8_t cmd_id_impl() {
+        return 0x0E;
+    }
+
+    std::int16_t yaw_t10;
+    std::int16_t pitch_t10;
+};
+
 class TakePicture : public Payload<TakePicture> {
 public:
     [[nodiscard]] std::vector<std::uint8_t> bytes_impl() const {
