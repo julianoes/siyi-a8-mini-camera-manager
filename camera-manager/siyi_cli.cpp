@@ -1,4 +1,5 @@
 #include "siyi_camera.hpp"
+#include <cstdlib>
 #include <iostream>
 #include <string_view>
 
@@ -10,7 +11,9 @@ void print_usage(const std::string_view& bin_name)
               << "  version                                     Show camera and gimbal version\n\n"
               << "  take_picture                                Take a picture to SD card\n\n"
               << "  toggle_recording                            Toggle start/stop video recording to SD card\n\n"
-              << "  gimbal_forward                              Set gimbal forward\n\n"
+              << "  gimbal neutral                              Set gimbal forward\n\n"
+              << "  gimbal pitch <value>                        Set gimbal pitch (in degrees, negative is down)\n\n"
+              << "  gimbal yaw <value>                          Set gimbal yaw (in degrees, negative is down)\n\n"
               << "  zoom <option>                               Use zoom\n"
               << "    Options:\n"
               << "      - in (to start zooming in)\n"
@@ -77,10 +80,31 @@ int main(int argc, char* argv[])
         siyi_messager.send(siyi_serializer.assemble_message(siyi::ToggleRecording{}));
         (void)siyi_messager.receive();
 
-    } else if (action == "gimbal_forward") {
-        std::cout << "Set gimbal forward\n";
-        siyi_messager.send(siyi_serializer.assemble_message(siyi::GimbalCenter{}));
-        (void)siyi_messager.receive();
+    } else if (action == "gimbal") {
+        if (argc >= 3) {
+            const std::string_view command {argv[2]};
+            if (command == "neutral") {
+                std::cout << "Set gimbal neutral\n";
+                siyi_messager.send(siyi_serializer.assemble_message(siyi::GimbalCenter{}));
+                (void)siyi_messager.receive();
+            } else if (command == "angle") {
+                if (argc >= 5) {
+                    auto pitch = std::strtol(argv[3], nullptr, 10);
+                    auto yaw = std::strtol(argv[4], nullptr, 10);
+                    std::cout << "Set gimbal to " << pitch << " deg and yaw " << yaw << "\n";
+                    siyi::SetGimbalAttitude set_gimbal_attitude{};
+                    set_gimbal_attitude.pitch_t10 = static_cast<std::int16_t>(pitch*10);
+                    set_gimbal_attitude.yaw_t10 = static_cast<std::int16_t>(yaw*10);
+                    siyi_messager.send(siyi_serializer.assemble_message(set_gimbal_attitude));
+                    (void)siyi_messager.receive();
+
+                } else {
+                    std::cout << "Not enough arguments\n";
+                    print_usage(argv[0]);
+                    return 1;
+                }
+            }
+        }
 
     } else if (action == "get") {
         if (argc >= 3) {
