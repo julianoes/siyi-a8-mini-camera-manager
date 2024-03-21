@@ -319,6 +319,37 @@ int main(int argc, char* argv[])
             storage_information);
     });
 
+    camera_server.subscribe_zoom_range([&](float zoom_factor) {
+        if (zoom_factor < 1.f) {
+            std::cout << "Zoom below 1x not possible" << std::endl;
+            camera_server.respond_zoom_range(mavsdk::CameraServer::CameraFeedback::Failed);
+            return;
+        }
+        if (zoom_factor > 6.f) {
+            std::cout << "Zoom above 6x not possible" << std::endl;
+            camera_server.respond_zoom_range(mavsdk::CameraServer::CameraFeedback::Failed);
+            return;
+        }
+
+        siyi_camera.absolute_zoom(zoom_factor);
+        camera_server.respond_zoom_range(mavsdk::CameraServer::CameraFeedback::Ok);
+    });
+
+    camera_server.subscribe_zoom_in_start([&](int) {
+        siyi_camera.zoom(siyi::Camera::Zoom::In);
+        camera_server.respond_zoom_in_start(mavsdk::CameraServer::CameraFeedback::Ok);
+    });
+
+    camera_server.subscribe_zoom_out_start([&](int) {
+        siyi_camera.zoom(siyi::Camera::Zoom::Out);
+        camera_server.respond_zoom_in_start(mavsdk::CameraServer::CameraFeedback::Ok);
+    });
+
+    camera_server.subscribe_zoom_stop([&](int) {
+        siyi_camera.zoom(siyi::Camera::Zoom::Stop);
+        camera_server.respond_zoom_stop(mavsdk::CameraServer::CameraFeedback::Ok);
+    });
+
     // Run as a server and never quit
     while (true) {
         std::this_thread::sleep_for(std::chrono::seconds(1));
