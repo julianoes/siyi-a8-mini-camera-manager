@@ -24,6 +24,7 @@ bool Messager::send(const std::vector<std::uint8_t>& message)
         std::cerr << "Error sending UDP packet: " << strerror(errno) << std::endl;
         return false;
     }
+    // std::cerr << "Sent " << sent << std::endl;
     return true;
 }
 
