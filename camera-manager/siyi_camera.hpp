@@ -106,7 +106,7 @@ public:
         } else if (_stream_settings.resolution_h == 720 && _stream_settings.resolution_l == 1280) {
             return Resolution::Res1280x720;
         } else {
-            std::cerr << "resolution invalid\n";
+            std::cerr << "resolution invalid" << std::endl;
             assert(false);
             return Resolution::Res1280x720;
         }
@@ -138,7 +138,7 @@ public:
             set_stream_settings.resolution_l = 3840;
             set_stream_settings.resolution_h = 2160;
         } else {
-            std::cerr << "resolution invalid\n";
+            std::cerr << "resolution invalid" << std::endl;
             return false;
         }
 
@@ -150,7 +150,7 @@ public:
                 _deserializer.disassemble_message<siyi::AckSetStreamSettings>(_messager.receive());
 
         if (!maybe_ack_set_stream_settings || maybe_ack_set_stream_settings.value().result != 1) {
-            std::cerr << "setting stream settings failed\n";
+            std::cerr << "setting stream settings failed" << std::endl;
             return false;
         }
 
@@ -184,7 +184,7 @@ public:
         } else if (settings.video_enc_type == 2) {
             return Codec::H265;
         } else {
-            std::cerr << "codec invalid\n";
+            std::cerr << "codec invalid" << std::endl;
             assert(false);
             return Codec::H264;
         }
@@ -206,7 +206,7 @@ public:
         } else if (codec == Codec::H265) {
             set_stream_settings.video_enc_type = 2;
         } else {
-            std::cerr << "codec invalid\n";
+            std::cerr << "codec invalid" << std::endl;
             return false;
         }
         set_stream_settings.video_bitrate_kbps = _stream_settings.video_bitrate_kbps;
@@ -218,7 +218,7 @@ public:
                 _deserializer.disassemble_message<siyi::AckSetStreamSettings>(_messager.receive());
 
         if (!maybe_ack_set_stream_settings || maybe_ack_set_stream_settings.value().result != 1) {
-            std::cerr << "setting stream settings failed\n";
+            std::cerr << "setting stream settings failed" << std::endl;
             return false;
         }
         auto get_stream_settings = siyi::GetStreamSettings{};
@@ -265,7 +265,7 @@ public:
                 _deserializer.disassemble_message<siyi::AckSetStreamSettings>(_messager.receive());
 
         if (!maybe_ack_set_stream_settings || maybe_ack_set_stream_settings.value().result != 1) {
-            std::cerr << "setting stream settings failed\n";
+            std::cerr << "setting stream settings failed" << std::endl;
             return false;
         }
 
@@ -317,7 +317,7 @@ public:
         //        _deserializer.disassemble_message<siyi::AckManualZoom>(_messager.receive());
 
         //if (maybe_ack_manual_zoom) {
-        //    std::cerr << "current zoom: " << maybe_ack_manual_zoom.value().zoom_multiple << '\n';
+        //    std::cerr << "current zoom: " << maybe_ack_manual_zoom.value().zoom_multiple << std::endl;
         //    _ack_manual_zoom = maybe_ack_manual_zoom.value();
         //    return false;
         //}
@@ -354,7 +354,7 @@ public:
         //        _deserializer.disassemble_message<siyi::AckManualZoom>(_messager.receive());
 
         //if (maybe_ack_manual_zoom) {
-        //    std::cerr << "current zoom: " << maybe_ack_manual_zoom.value().zoom_multiple << '\n';
+        //    std::cerr << "current zoom: " << maybe_ack_manual_zoom.value().zoom_multiple << std::endl;
         //    _ack_manual_zoom = maybe_ack_manual_zoom.value();
         //    return false;
         //}

@@ -40,7 +40,7 @@ void print_usage(const std::string_view& bin_name)
               << "    Options:\n"
               << "      - h264 (for H264)\n"
               << "      - h265 (for H265/HVEC)\n"
-              << "\n";
+              << std::endl;
 }
 
 int main(int argc, char* argv[])
@@ -59,7 +59,7 @@ int main(int argc, char* argv[])
     }
 
     if (argc == 1 ) {
-        std::cout << "No argument supplied.\n";
+        std::cout << "No argument supplied." << std::endl;
         print_usage(argv[0]);
         return 0;
     }
@@ -73,12 +73,12 @@ int main(int argc, char* argv[])
         siyi_camera.print_version();
 
     } else if (action == "take_picture") {
-        std::cout << "Take picture\n";
+        std::cout << "Take picture" << std::endl;
         siyi_messager.send(siyi_serializer.assemble_message(siyi::TakePicture{}));
         (void)siyi_messager.receive();
 
     } else if (action == "toggle_recording") {
-        std::cout << "Toggle recording\n";
+        std::cout << "Toggle recording" << std::endl;
         siyi_messager.send(siyi_serializer.assemble_message(siyi::ToggleRecording{}));
         (void)siyi_messager.receive();
 
@@ -86,14 +86,14 @@ int main(int argc, char* argv[])
         if (argc >= 3) {
             const std::string_view command {argv[2]};
             if (command == "neutral") {
-                std::cout << "Set gimbal neutral\n";
+                std::cout << "Set gimbal neutral" << std::endl;
                 siyi_messager.send(siyi_serializer.assemble_message(siyi::GimbalCenter{}));
                 (void)siyi_messager.receive();
             } else if (command == "angle") {
                 if (argc >= 5) {
                     auto pitch = std::strtol(argv[3], nullptr, 10);
                     auto yaw = std::strtol(argv[4], nullptr, 10);
-                    std::cout << "Set gimbal to " << pitch << " deg and yaw " << yaw << "\n";
+                    std::cout << "Set gimbal to " << pitch << " deg and yaw " << yaw << std::endl;
                     siyi::SetGimbalAttitude set_gimbal_attitude{};
                     set_gimbal_attitude.pitch_t10 = static_cast<std::int16_t>(pitch*10);
                     set_gimbal_attitude.yaw_t10 = static_cast<std::int16_t>(yaw*10);
@@ -101,7 +101,7 @@ int main(int argc, char* argv[])
                     (void)siyi_messager.receive();
 
                 } else {
-                    std::cout << "Not enough arguments\n";
+                    std::cout << "Not enough arguments" << std::endl;
                     print_usage(argv[0]);
                     return 1;
                 }
@@ -117,14 +117,14 @@ int main(int argc, char* argv[])
             } else if (type_str == "recording") {
                 type = siyi::Camera::Type::Recording;
             } else {
-                std::cout << "Invalid type\n";
+                std::cout << "Invalid type" << std::endl;
                 print_usage(argv[0]);
                 return 1;
             }
 
             siyi_camera.print_settings(type);
         } else {
-            std::cout << "Not enough arguments\n";
+            std::cout << "Not enough arguments" << std::endl;
             print_usage(argv[0]);
             return 1;
         }
@@ -141,7 +141,7 @@ int main(int argc, char* argv[])
             } else if (type_str == "recording") {
                 type = siyi::Camera::Type::Recording;
             } else {
-                std::cout << "Invalid type\n";
+                std::cout << "Invalid type" << std::endl;
                 print_usage(argv[0]);
                 return 1;
             }
@@ -247,16 +247,16 @@ int main(int argc, char* argv[])
                 }
 
             } else {
-                std::cout << "Unknown setting\n";
+                std::cout << "Unknown setting" << std::endl;
                 print_usage(argv[0]);
                 return 1;
             }
 
-            std::cout << "New " << type_str << " settings:\n";
+            std::cout << "New " << type_str << " settings:" << std::endl;
             siyi_camera.print_settings(type);
 
         } else {
-            std::cout << "Not enough arguments\n";
+            std::cout << "Not enough arguments" << std::endl;
             print_usage(argv[0]);
             return 1;
         }
@@ -300,7 +300,7 @@ int main(int argc, char* argv[])
                 siyi_camera.absolute_zoom(factor);
             }
         } else {
-            std::cout << "Not enough arguments\n";
+            std::cout << "Not enough arguments" << std::endl;
             print_usage(argv[0]);
             return 1;
         }
@@ -309,13 +309,13 @@ int main(int argc, char* argv[])
         if (argc >= 3) {
 
         } else {
-            std::cout << "Not enough arguments\n";
+            std::cout << "Not enough arguments" << std::endl;
             print_usage(argv[0]);
             return 1;
         }
 
     } else {
-        std::cout << "Unknown command\n";
+        std::cout << "Unknown command" << std::endl;
         print_usage(argv[0]);
         return 2;
     }
