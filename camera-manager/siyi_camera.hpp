@@ -3,6 +3,7 @@
 #include "siyi_protocol.hpp"
 
 #include <cassert>
+#include <cmath>
 
 namespace siyi {
 
@@ -311,7 +312,7 @@ public:
 
         _messager.send(_serializer.assemble_message(manual_zoom));
 
-        // We don't seem to be getting anything back.
+        // We don't seem to be getting anything back, it just times out.
         //const auto maybe_ack_manual_zoom =
         //        _deserializer.disassemble_message<siyi::AckManualZoom>(_messager.receive());
 
@@ -323,8 +324,41 @@ public:
         return true;
     }
 
-    [[nodiscard]] unsigned zoom() const {
-        return _ack_manual_zoom.zoom_multiple;
+    // Unavailable
+    //[[nodiscard]] unsigned zoom() const {
+    //    return _ack_manual_zoom.zoom_multiple;
+    //}
+
+    bool absolute_zoom(float factor)
+    {
+        auto message = siyi::AbsoluteZoom{};
+
+        if (factor > static_cast<float>(0x1E)) {
+            std::cerr << "zoom factor too high" << std::endl;
+            return false;
+        }
+        if (factor < 1.f) {
+            std::cerr << "zoom factor too small" << std::endl;
+            return false;
+        }
+
+        message.absolute_movement_integer = static_cast<uint8_t>(factor);
+        message.absolute_movement_fractional = static_cast<uint8_t>(std::roundf((factor-static_cast<float>(message.absolute_movement_integer)) * 10.f));
+
+        std::cerr << "Sending abs zoom: " << (int)message.absolute_movement_integer << "." << (int)message.absolute_movement_fractional << std::endl;
+
+        _messager.send(_serializer.assemble_message(message));
+
+        // We don't seem to be getting anything back, it just times out.
+        //const auto maybe_ack_manual_zoom =
+        //        _deserializer.disassemble_message<siyi::AckManualZoom>(_messager.receive());
+
+        //if (maybe_ack_manual_zoom) {
+        //    std::cerr << "current zoom: " << maybe_ack_manual_zoom.value().zoom_multiple << '\n';
+        //    _ack_manual_zoom = maybe_ack_manual_zoom.value();
+        //    return false;
+        //}
+        return true;
     }
 
 private:
@@ -335,7 +369,7 @@ private:
     AckFirmwareVersion _version{};
     AckGetStreamResolution _recording_settings{};
     AckGetStreamResolution _stream_settings{};
-    AckManualZoom _ack_manual_zoom{};
+    // AckManualZoom _ack_manual_zoom{};
 };
 
 } // siyi

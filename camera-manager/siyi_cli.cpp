@@ -1,6 +1,7 @@
 #include "siyi_camera.hpp"
 #include <cstdlib>
 #include <iostream>
+#include <string>
 #include <string_view>
 
 void print_usage(const std::string_view& bin_name)
@@ -19,6 +20,7 @@ void print_usage(const std::string_view& bin_name)
               << "      - in (to start zooming in)\n"
               << "      - out (to start zooming out)\n"
               << "      - stop (to stop zooming)\n"
+              << "      - <factor> (1.0 to 6.0)\n"
               << "\n"
               << "  get <stream|recording> settings             Show all settings for stream or recording\n\n"
               << "\n"
@@ -287,10 +289,25 @@ int main(int argc, char* argv[])
                     return 1;
                 }
             } else {
-                std::cout << "Invalid zoom command" << std::endl;
-                print_usage(argv[0]);
-                return 1;
+                float factor;
+                try {
+                    factor = std::stof(option.data());
+                } catch (std::invalid_argument&) {
+                    std::cout << "Invalid zoom command" << std::endl;
+                    print_usage(argv[0]);
+                    return 1;
+                };
+                siyi_camera.absolute_zoom(factor);
             }
+        } else {
+            std::cout << "Not enough arguments\n";
+            print_usage(argv[0]);
+            return 1;
+        }
+
+    } else if (action == "zoom") {
+        if (argc >= 3) {
+
         } else {
             std::cout << "Not enough arguments\n";
             print_usage(argv[0]);

@@ -207,6 +207,23 @@ public:
     std::int8_t zoom{};
 };
 
+class AbsoluteZoom : public Payload<AbsoluteZoom> {
+public:
+    [[nodiscard]] std::vector<std::uint8_t> bytes_impl() const {
+        std::vector<std::uint8_t> result;
+        result.push_back(absolute_movement_integer);
+        result.push_back(absolute_movement_fractional);
+        return result;
+    }
+
+    static std::uint8_t cmd_id_impl() {
+        return 0x0F;
+    }
+
+    std::uint8_t absolute_movement_integer{};
+    std::uint8_t absolute_movement_fractional{};
+};
+
 class Messager
 {
 public:
