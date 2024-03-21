@@ -3,6 +3,7 @@
 #include <thread>
 #include <filesystem>
 #include <mavsdk/mavsdk.h>
+#include <mavsdk/log_callback.h>
 #include <mavsdk/plugins/camera_server/camera_server.h>
 #include <mavsdk/plugins/ftp_server/ftp_server.h>
 #include <mavsdk/plugins/param_server/param_server.h>
@@ -16,7 +17,7 @@ int main(int argc, char* argv[])
                   << "\n"
                   << "Usage: " << argv[0] << " <mavsdk connection url> <ground station connection url> <our ip>\n"
                   << "\n"
-                  << "E.g. " << argv[0] << " serial:///dev/ttyUSB0:57600 udp://192.168.1.51:14550 rtsp://192.168.1.45:8554/live\n";
+                  << "E.g. " << argv[0] << " serial:///dev/ttyUSB0:57600 udp://192.168.1.51:14550 rtsp://192.168.1.45:8554/live" << std::endl;
         return 1;
     }
 
@@ -38,6 +39,36 @@ int main(int argc, char* argv[])
 
     // MAVSDK setup second
     mavsdk::Mavsdk mavsdk{mavsdk::Mavsdk::Configuration{mavsdk::Mavsdk::ComponentType::Camera}};
+
+    // We overwrite the mavsdk logs to prepend "Mavsdk:" and to make sure we flush it after every
+    // line using std::endl. Otherwise, it gets buffered by systemctl and logs appear delayed.
+
+    mavsdk::log::subscribe([](mavsdk::log::Level level,   // message severity level
+                              const std::string& message, // message text
+                              const std::string& file,    // source file from which the message was sent
+                              int line) {                 // line number in the source file
+
+        std::cout << "Mavsdk ";
+        // process the log message in a way you like
+        switch (level) {
+            case mavsdk::log::Level::Debug:
+                std::cout << "debug: ";
+                break;
+            case mavsdk::log::Level::Info:
+                std::cout << "info: ";
+                break;
+            case mavsdk::log::Level::Warn:
+                std::cout << "warning: ";
+                break;
+            case mavsdk::log::Level::Err:
+                std::cout << "error: ";
+        }
+        std::cout << message;
+        std::cout << " (" << file << ":" << line << ")" << std::endl;
+
+        // returning true from the callback disables default printing
+        return true;
+    });
 
     auto result = mavsdk.add_any_connection(mavsdk_connection_url, mavsdk::ForwardingOption::ForwardingOn);
     if (result != mavsdk::ConnectionResult::Success) {
@@ -82,7 +113,7 @@ int main(int argc, char* argv[])
             stream_res = 1;
             break;
         default:
-            std::cerr << "Unexpected stream resolution\n";
+            std::cerr << "Unexpected stream resolution" << std::endl;
             break;
     }
 
@@ -203,14 +234,14 @@ int main(int argc, char* argv[])
     camera_server.subscribe_start_video([&](int32_t) {
 
         if (recording) {
-            std::cout << "Video already started\n";
+            std::cout << "Video already started" << std::endl;
             camera_server.respond_start_video(
                 mavsdk::CameraServer::CameraFeedback::Failed);
 
         } else {
-            std::cout << "Start video\n";
+            std::cout << "Start video" << std::endl;
             siyi_messager.send(siyi_serializer.assemble_message(siyi::ToggleRecording{}));
-            std::cout << "Video started\n";
+            std::cout << "Video started" << std::endl;
             siyi_messager.send(siyi_serializer.assemble_message(siyi::ToggleRecording{}));
             recording = true;
             recording_start_time = std::chrono::steady_clock::now();
@@ -222,12 +253,12 @@ int main(int argc, char* argv[])
     camera_server.subscribe_stop_video([&](int32_t) {
 
         if (!recording) {
-            std::cout << "Video not started\n";
+            std::cout << "Video not started" << std::endl;
             camera_server.respond_stop_video(
                 mavsdk::CameraServer::CameraFeedback::Failed);
 
         } else {
-            std::cout << "Stop video\n";
+            std::cout << "Stop video" << std::endl;
             siyi_messager.send(siyi_serializer.assemble_message(siyi::ToggleRecording{}));
             recording = false;
             camera_server.respond_stop_video(

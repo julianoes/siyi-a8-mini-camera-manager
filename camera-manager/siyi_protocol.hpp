@@ -291,7 +291,7 @@ class AckFirmwareVersion : public AckPayload<AckFirmwareVersion> {
         bool fill_impl(const std::vector<std::uint8_t>& bytes) {
 
             if (bytes.size() != len) {
-                std::cerr << "Length wrong: " << bytes.size() << " instead of " << len << '\n';
+                std::cerr << "Length wrong: " << bytes.size() << " instead of " << len << std::endl;
                 return false;
             }
 
@@ -318,7 +318,7 @@ class AckFirmwareVersion : public AckPayload<AckFirmwareVersion> {
                 << "Gimbal version: "
                 << int(self.gimbal_firmware_ver_major) << '.'
                 << int(self.gimbal_firmware_ver_minor) << '.'
-                << int(self.gimbal_firmware_ver_patch) << '\n';
+                << int(self.gimbal_firmware_ver_patch) << std::endl;
             return str;
         }
 
@@ -339,7 +339,7 @@ public:
     bool fill_impl(const std::vector<std::uint8_t>& bytes) {
 
         if (bytes.size() != len) {
-            std::cerr << "Length wrong: " << bytes.size() << " instead of " << len << '\n';
+            std::cerr << "Length wrong: " << bytes.size() << " instead of " << len << std::endl;
             return false;
         }
 
@@ -361,7 +361,7 @@ public:
     friend std::ostream& operator<<(std::ostream& str, const AckGetStreamResolution& self) {
         str << "Resolution: " << self.resolution_l << "x" << self.resolution_h << '\n'
             << "Bitrate: " << self.video_bitrate_kbps << " kbps\n"
-            << "Codec: " << (self.video_enc_type == 1 ? "H264" : "H265") << '\n';
+            << "Codec: " << (self.video_enc_type == 1 ? "H264" : "H265") << std::endl;
         return str;
     }
 
@@ -388,7 +388,7 @@ public:
     bool fill_impl(const std::vector<std::uint8_t>& bytes) {
 
         if (bytes.size() != len) {
-            std::cerr << "Length wrong: " << bytes.size() << " instead of " << len << '\n';
+            std::cerr << "Length wrong: " << bytes.size() << " instead of " << len << std::endl;
             return false;
         }
 
