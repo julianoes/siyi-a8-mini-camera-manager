@@ -301,11 +301,14 @@ public:
         switch (option) {
             case Zoom::In:
                 manual_zoom.zoom = 1;
+                std::cerr << "Starting to zoom in" << std::endl;
                 break;
             case Zoom::Out:
                 manual_zoom.zoom = -1;
+                std::cerr << "Starting to zoom out" << std::endl;
                 break;
             case Zoom::Stop:
+                std::cerr << "Stopping to zoom" << std::endl;
                 manual_zoom.zoom = 0;
                 break;
         }
