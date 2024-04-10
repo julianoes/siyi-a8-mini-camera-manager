@@ -92,6 +92,7 @@ then
     fpm ${common_args} \
         --output-type deb \
         --deb-no-default-config-files \
+        --deb-pre-depends libgstrtspserver-1.0-0 \
         ${library_files}
 
     dist_version=$(cat /etc/os-release | grep VERSION_ID | sed 's/[^0-9.]*//g')
