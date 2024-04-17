@@ -53,9 +53,6 @@ version=$(echo ${git_describe} | sed 's/v\([0-9]*\.[0-9]*\.[0-9]*\).*$/\1/')
 
 echo "Found version: '${version}' from '${git_describe}'."
 
-echo "#!/bin/sh" > ${working_dir}/run_ldconfig
-echo "/sbin/ldconfig" >> ${working_dir}/run_ldconfig
-
 common_args="--chdir ${working_dir}/install \
              --input-type dir  \
              --name ${name} \
@@ -63,8 +60,6 @@ common_args="--chdir ${working_dir}/install \
              --maintainer julian@oes.ch \
              --url https://github.com/julianoes/siyi-a8-mini-camera-manager \
              --license Apache-2.0-license \
-             --after-install ${working_dir}/run_ldconfig \
-             --after-remove ${working_dir}/run_ldconfig \
              --force \
              -a ${package_arch}"
 
