@@ -13,8 +13,8 @@ void print_usage(const std::string_view& bin_name)
               << "  take_picture                                Take a picture to SD card\n\n"
               << "  toggle_recording                            Toggle start/stop video recording to SD card\n\n"
               << "  gimbal neutral                              Set gimbal forward\n\n"
-              << "  gimbal pitch <value>                        Set gimbal pitch (in degrees, negative is down)\n\n"
-              << "  gimbal yaw <value>                          Set gimbal yaw (in degrees, negative is down)\n\n"
+              << "  gimbal angle <pitch_value> <yaw_value>      Set gimbal angles pitch (in degees, negative down)\n"
+              << "                                                and yaw (in degrees, positive is to the right)\n\n"
               << "  zoom <option>                               Use zoom\n"
               << "    Options:\n"
               << "      - in (to start zooming in)\n"
@@ -96,7 +96,7 @@ int main(int argc, char* argv[])
                     std::cout << "Set gimbal to " << pitch << " deg and yaw " << yaw << std::endl;
                     siyi::SetGimbalAttitude set_gimbal_attitude{};
                     set_gimbal_attitude.pitch_t10 = static_cast<std::int16_t>(pitch*10);
-                    set_gimbal_attitude.yaw_t10 = static_cast<std::int16_t>(yaw*10);
+                    set_gimbal_attitude.yaw_t10 = static_cast<std::int16_t>(-yaw*10);
                     siyi_messager.send(siyi_serializer.assemble_message(set_gimbal_attitude));
                     (void)siyi_messager.receive();
 
@@ -105,6 +105,10 @@ int main(int argc, char* argv[])
                     print_usage(argv[0]);
                     return 1;
                 }
+            } else {
+                std::cout << "Invalid gimbal command" << std::endl;
+                print_usage(argv[0]);
+                return 1;
             }
         }
 
