@@ -35,7 +35,7 @@
                 <option name="1.6 Mbps" value="1600" />
             </options>
         </parameter>
-        <parameter name="STREAM_CODEC" type="int32" default="0">
+        <parameter name="STREAM_CODEC" type="int32" default="2">
             <description>Video stream codec</description>
             <options>
                 <option name="H264" value="1" />
