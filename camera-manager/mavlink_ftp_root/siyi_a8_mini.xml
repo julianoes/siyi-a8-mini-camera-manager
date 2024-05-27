@@ -8,6 +8,8 @@
         <!-- control = 0 tells us this should not create an automatic UI control -->
         <parameter name="CAM_MODE" type="int32" default="1" control="0">
             <description>Camera Mode</description>
+            <option name="Photo" value="0" />
+            <option name="Video" value="1" />
         </parameter>
         <parameter name="STREAM_RES" type="int32" default="0">
             <description>Video stream resolution</description>
@@ -33,7 +35,7 @@
                 <option name="1.6 Mbps" value="1600" />
             </options>
         </parameter>
-        <parameter name="STREAM_CODEC" type="int32" default="0">
+        <parameter name="STREAM_CODEC" type="int32" default="2">
             <description>Video stream codec</description>
             <options>
                 <option name="H264" value="1" />
