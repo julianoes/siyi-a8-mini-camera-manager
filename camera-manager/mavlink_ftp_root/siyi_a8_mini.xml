@@ -8,6 +8,8 @@
         <!-- control = 0 tells us this should not create an automatic UI control -->
         <parameter name="CAM_MODE" type="int32" default="1" control="0">
             <description>Camera Mode</description>
+            <option name="Photo" value="0" />
+            <option name="Video" value="1" />
         </parameter>
         <parameter name="STREAM_RES" type="int32" default="0">
             <description>Video stream resolution</description>
