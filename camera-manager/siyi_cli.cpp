@@ -12,6 +12,7 @@ void print_usage(const std::string_view& bin_name)
               << "  version                                     Show camera and gimbal version\n\n"
               << "  take_picture                                Take a picture to SD card\n\n"
               << "  toggle_recording                            Toggle start/stop video recording to SD card\n\n"
+              << "  gimbal mode <follow|lock|fpv>               Set gimbal mode to follow, lock, or FPV\n\n"
               << "  gimbal neutral                              Set gimbal forward\n\n"
               << "  gimbal angle <pitch_value> <yaw_value>      Set gimbal angles pitch (in degees, negative down)\n"
               << "                                                and yaw (in degrees, positive is to the right)\n\n"
@@ -85,7 +86,31 @@ int main(int argc, char* argv[])
     } else if (action == "gimbal") {
         if (argc >= 3) {
             const std::string_view command {argv[2]};
-            if (command == "neutral") {
+            if (command == "mode") {
+                if (argc == 4) {
+                    const std::string_view mode {argv[3]};
+                    siyi::SetGimbalMode set_gimbal_mode{};
+                    if (mode == "lock") {
+                        set_gimbal_mode.mode = siyi::SetGimbalMode::Mode::Lock;
+                    } else if (mode == "follow") {
+                        set_gimbal_mode.mode = siyi::SetGimbalMode::Mode::Follow;
+                    } else if (mode == "fpv") {
+                        set_gimbal_mode.mode = siyi::SetGimbalMode::Mode::Fpv;
+                    } else {
+                        std::cout << "Unkown mode: " << mode << std::endl;
+                        print_usage(argv[0]);
+                        return 1;
+                    }
+                    std::cout << "Set gimbal mode to " << mode << std::endl;
+                    siyi_messager.send(siyi_serializer.assemble_message(set_gimbal_mode));
+                    //(void)siyi_messager.receive();
+                } else {
+                    std::cout << "Not enough arguments" << std::endl;
+                    print_usage(argv[0]);
+                    return 1;
+                }
+
+            } else if (command == "neutral") {
                 std::cout << "Set gimbal neutral" << std::endl;
                 siyi_messager.send(siyi_serializer.assemble_message(siyi::GimbalCenter{}));
                 (void)siyi_messager.receive();
