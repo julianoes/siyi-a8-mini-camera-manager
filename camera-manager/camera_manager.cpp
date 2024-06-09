@@ -1,4 +1,6 @@
 #include <iostream>
+#include <string>
+#include <vector>
 #include <chrono>
 #include <thread>
 #include <filesystem>
@@ -10,20 +12,98 @@
 #include "siyi_protocol.hpp"
 #include "siyi_camera.hpp"
 
-int main(int argc, char* argv[])
-{
-    if (argc != 4) {
-        std::cerr << "Error: Invalid argument.\n"
-                  << "\n"
-                  << "Usage: " << argv[0] << " <mavsdk connection url> <ground station connection url> <our ip>\n"
-                  << "\n"
-                  << "E.g. " << argv[0] << " serial:///dev/ttyUSB0:57600 udp://192.168.1.51:14550 rtsp://192.168.1.45:8554/live" << std::endl;
-        return 1;
+class CommandLineParser {
+public:
+    static void print_usage(const std::string& programName) {
+        std::cout << "Usage: " << programName << " [options]\n"
+                  << "Options:\n"
+                  << "  --connection <connection string>   Specify a connection string (can be used multiple times)\n"
+                  << "  --forwarding <on|off>              Enable or disable forwarding (default off)\n"
+                  << "  --stream-url <stream string>       Specify the stream URL\n"
+                  << "  --help                             Show this help message\n";
     }
 
-    const std::string mavsdk_connection_url{argv[1]};
-    const std::string groundstation_connection_url{argv[2]};
-    const std::string rtsp_url{argv[3]};
+    enum Result {
+        Ok,
+        Invalid,
+        Help,
+    };
+
+    Result parse(int argc, char** argv) {
+        for (int i = 1; i < argc; ++i) {
+            std::string current_arg = argv[i];
+
+            if (current_arg == "--help") {
+                return Result::Help;
+
+            } else if (current_arg == "--connection") {
+                if (i + 1 < argc) {
+                    connections.emplace_back(argv[++i]);
+                } else {
+                    std::cerr << "Error: --connection requires a value" << std::endl;
+                    return Result::Invalid;
+                }
+            } else if (current_arg == "--forwarding") {
+                if (i + 1 < argc) {
+                    auto option = std::string(argv[++i]);
+                    if (option == "on") {
+                        forwarding = true;
+                    } else if (option == "off") {
+                        forwarding = false;
+                    } else {
+                        std::cerr << "Error: --forwarding requires 'on' or 'off'" << std::endl;
+                        return Result::Invalid;
+                    }
+                } else {
+                    std::cerr << "Error: --forwarding requires a value" << std::endl;
+                    return Result::Invalid;
+                }
+            } else if (current_arg == "--stream-url") {
+                if (i + 1 < argc) {
+                    stream_url = argv[++i];
+                } else {
+                    std::cerr << "Error: --stream-url requires a value" << std::endl;
+                    return Result::Invalid;
+                }
+            } else {
+                std::cerr << "Unknown argument: " << current_arg << std::endl;
+                return Result::Invalid;
+            }
+        }
+
+        if (connections.empty()) {
+            std::cerr << "At least one connection is required:" << std::endl;
+            return Result::Invalid;
+        }
+
+        if (stream_url.empty()) {
+            std::cerr << "Stream URL is required:" << std::endl;
+            return Result::Invalid;
+        }
+
+        return Result::Ok;
+    }
+
+    std::vector<std::string> connections;
+    std::string stream_url;
+    bool forwarding {false};
+};
+
+int main(int argc, char* argv[])
+{
+    CommandLineParser parser;
+    switch (parser.parse(argc, argv)) {
+        case CommandLineParser::Result::Help:
+            CommandLineParser::print_usage(argv[0]);
+            return 0;
+
+        case CommandLineParser::Result::Invalid:
+            CommandLineParser::print_usage(argv[0]);
+            return 1;
+
+        case CommandLineParser::Result::Ok:
+            break;
+    }
 
     // SIYI setup first
     siyi::Messager siyi_messager;
@@ -70,19 +150,18 @@ int main(int argc, char* argv[])
         return true;
     });
 
-    auto result = mavsdk.add_any_connection(mavsdk_connection_url, mavsdk::ForwardingOption::ForwardingOn);
-    if (result != mavsdk::ConnectionResult::Success) {
-        std::cerr << "Could not establish autopilot connection: " << result << std::endl;
-        return 1;
-    }
+    for (auto& connection : parser.connections) {
+        auto result = mavsdk.add_any_connection(
+            connection,
+            parser.forwarding ? mavsdk::ForwardingOption::ForwardingOn : mavsdk::ForwardingOption::ForwardingOff);
 
-    result = mavsdk.add_any_connection(groundstation_connection_url, mavsdk::ForwardingOption::ForwardingOn);
-    if (result != mavsdk::ConnectionResult::Success) {
-        std::cerr << "Could not establish ground station connection: " << result << std::endl;
-        return 1;
+        if (result != mavsdk::ConnectionResult::Success) {
+            std::cerr << "Could not establish connection '" << connection << """': " << result << std::endl;
+            return 1;
+        }
+        std::cout << "Created connection '" << connection << "' forwarding '"
+                  << (parser.forwarding ? "on" : "off") << "'"<<std::endl;
     }
-
-    std::cout << "Created camera server connection" << std::endl;
 
     auto ftp_server = mavsdk::FtpServer{
         mavsdk.server_component_by_type(mavsdk::Mavsdk::ComponentType::Camera)};
@@ -186,7 +265,7 @@ int main(int argc, char* argv[])
 
     ret = camera_server.set_video_streaming(mavsdk::CameraServer::VideoStreaming{
         .has_rtsp_server = true,
-        .rtsp_uri = rtsp_url,
+        .rtsp_uri = parser.stream_url,
     });
 
     if (ret != mavsdk::CameraServer::Result::Success) {
