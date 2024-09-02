@@ -126,14 +126,14 @@ build/rtsp_rebroadcast
 ```
 (by default there is no output)
 
-To test the RTSP server, try to connect to it from another computer connected to the same network.
+To test the RTSP server, try to connect to it from another computer connected to the same network. Replace `192.168.x.y` with the IP of your RPI device.
 
 Either using gstreamer:
 
 ```
 sudo apt install gstreamer1.0-plugins-base-apps
 
-gst-play rtsp://192.168.x.y:8554/live
+gst-play-1.0 rtsp://192.168.x.y:8554/live
 ```
 
 Or ffmpeg:
@@ -160,8 +160,8 @@ The camera manager is implemented using A small application on top of MAVSDK the
 Download the latest MAVSDK release as a .deb. For Raspberry Pi 4 running a 64bit image, this is using the package for the `arm64` architecture:
 
 ```
-wget https://github.com/mavlink/MAVSDK/releases/download/v2.10.2/libmavsdk-dev_2.10.2_debian12_arm64.deb
-sudo dpkg -i libmavsdk-dev_2.10.2_debian12_arm64.deb
+wget https://github.com/mavlink/MAVSDK/releases/download/v2.12.4/libmavsdk-dev_2.12.4_debian12_arm64.deb
+sudo dpkg -i libmavsdk-dev_2.12.4_debian12_arm64.deb
 ```
 
 ### Build
@@ -178,13 +178,13 @@ cmake --build build -j4
 ### Run
 
 And run it, passing as positional arguments:
-- How MAVSDK should connect to the Pixhawk, for serial: `serial:///dev/serial/to/pixhawk:baudrate`:
-- Where MAVSDK should forward MAVLink traffic to (e.g. to QGroundControl): `udp://some.ip.x.y:port`
-- Our IP (where RTSP video is available): `our.ip.x.y`
+- How MAVSDK should connect to the Pixhawk, for serial: `serial:///dev/serial/to/pixhawk:baudrate`
+- Whether to enable/disable forwarding (default: off)
+- Our IP (where RTSP video is available): `192.168.x.y`
 
 E.g.
 ```
-build/camera_manager serial:///dev/serial/by-id/usb-FTDI_FT232R_USB_UART_A907CB4L-if00-port0:3000000 udp://192.168.1.51:14550 192.168.1.29
+build/camera_manager serial:///dev/serial/by-id/usb-FTDI_FT232R_USB_UART_A907CB4L-if00-port0:3000000 'on' 192.168.1.29
 ```
 
 ## Pixhawk connection
@@ -234,7 +234,7 @@ In that case the serial device should show up as `/dev/ttACM0`.
 
 ## Pixhawk firmware
 
-This currently only properly works with PX4 built from source from the `main` branch. The reason is that forwarding is broken with v1.14.0 and earlier. The plan is to fix this for v1.14.1.
+This currently only properly works with PX4 built from source from the `main` branch and the latest release v1.14.3. The reason is that forwarding is broken with v1.14.2 and earlier.
 
 ## Enable Telem 2
 
@@ -247,7 +247,7 @@ To do so, set these params:
 
 ## Connect using QGroundControl
 
-You can now try to connect using QGroundControl. Make sure to use the latest release. I've tested it using 4.3.0.
+You can now try to connect using QGroundControl. Make sure to use the latest release. I've tested it using 4.4.1.
 
 If everything works you should:
 
