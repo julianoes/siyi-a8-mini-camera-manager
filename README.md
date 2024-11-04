@@ -54,7 +54,6 @@ sudo nmcli connection modify 'Wired connection 1' connection.autoconnect yes ipv
 
 The settings are saved to `/etc/NetworkManager/system-connections/Wired connection 1.nmconnection` and persist reboots.
 
-
 ### Verify IP and connection
 
 You can check the IP used:
@@ -85,6 +84,18 @@ PING 192.168.144.25 (192.168.144.25) 56(84) bytes of data.
 64 bytes from 192.168.144.25: icmp_seq=2 ttl=64 time=0.710 ms
 64 bytes from 192.168.144.25: icmp_seq=3 ttl=64 time=0.175 ms
 ```
+
+#### Troubleshooting
+
+If you cannot ping `192.168.144.25`, first verify that the static IP address has been assigned by pinging the assigned IP.
+
+```
+ping 192.168.144.20
+```
+
+If this fails, make sure that you are using the correct Debian package to configure the static IP address. 
+
+If you can ping `192.168.144.20` but not the camera at `192.168.144.25`, this is most likely a netmask issue. However you interact with the network settings, make sure that the `eth0` netmask is `255.255.255.0` and that no gateway is set.
 
 ## RTSP re-broadcasting
 
