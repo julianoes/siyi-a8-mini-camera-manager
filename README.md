@@ -171,8 +171,8 @@ The camera manager is implemented using A small application on top of MAVSDK the
 Download the latest MAVSDK release as a .deb. For Raspberry Pi 4 running a 64bit image, this is using the package for the `arm64` architecture:
 
 ```
-wget https://github.com/mavlink/MAVSDK/releases/download/v2.12.4/libmavsdk-dev_2.12.4_debian12_arm64.deb
-sudo dpkg -i libmavsdk-dev_2.12.4_debian12_arm64.deb
+wget https://github.com/mavlink/MAVSDK/releases/download/v2.12.12/libmavsdk-dev_2.12.12_debian12_arm64.deb
+sudo dpkg -i libmavsdk-dev_2.12.12_debian12_arm64.deb
 ```
 
 ### Build
@@ -189,13 +189,17 @@ cmake --build build -j4
 ### Run
 
 And run it, passing as positional arguments:
-- How MAVSDK should connect to the Pixhawk, for serial: `serial:///dev/serial/to/pixhawk:baudrate`
-- Whether to enable/disable forwarding (default: off)
-- Our IP (where RTSP video is available): `192.168.x.y`
+- `--connection` - How MAVSDK should connect to the Pixhawk, for serial: `serial:///dev/serial/to/pixhawk:baudrate`
+- `--forwarding` - Whether to enable/disable forwarding (default: off)
+- `--stream-url` - Our IP (where RTSP video is available): `rtsp://192.168.x.y:8554/live`
 
 E.g.
 ```
-build/camera_manager serial:///dev/serial/by-id/usb-FTDI_FT232R_USB_UART_A907CB4L-if00-port0:3000000 'on' 192.168.1.29
+build/camera_manager --connection serial:///dev/serial/by-id/usb-FTDI_FT232R_USB_UART_A907CB4L-if00-port0:3000000 --forwarding 'on' --stream-url rtsp://192.168.1.29:8554/live
+```
+or:
+```
+build/camera_manager --connection serial:///dev/serial0:3000000 --forwarding 'on' --stream-url rtsp://192.168.1.29:8554/live
 ```
 
 ## Pixhawk connection
