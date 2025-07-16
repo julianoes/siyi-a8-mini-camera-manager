@@ -13,7 +13,7 @@ on:
 jobs:
   create-deb-package:
     name: Create .deb package
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     permissions:
       contents: write
       packages: write
@@ -21,13 +21,12 @@ jobs:
       - uses: actions/checkout@v4
         with:
           submodules: recursive
-      - uses: uraimo/run-on-arch-action@v2
+      - uses: uraimo/run-on-arch-action@v3
         name: Run commands
         id: runcmd
         with:
-          arch: none
-          distro: none
-          base_image: arm64v8/debian:bookworm
+          arch: aarch64
+          distro: bookworm
           githubToken: ${{ github.token }}
           run: |
             apt-get update
