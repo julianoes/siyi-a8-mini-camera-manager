@@ -1,5 +1,7 @@
 # SIYI A8 mini camera manager
 
+[![Build](https://github.com/julianoes/siyi-a8-mini-camera-manager/actions/workflows/build.yml/badge.svg?branch=main)](https://github.com/julianoes/siyi-a8-mini-camera-manager/actions/workflows/build.yml)
+
 Camera Manager for SIYI A8 mini for RPi based on MAVSDK.
 
 ## Prerequisites
@@ -168,11 +170,11 @@ The camera manager is implemented using A small application on top of MAVSDK the
 
 ### Get MAVSDK
 
-Download the latest MAVSDK release as a .deb. For Raspberry Pi 4 running a 64bit image, this is using the package for the `arm64` architecture:
+Download the latest MAVSDK v3 release as a .deb. For Raspberry Pi 4 running a 64bit image, this is using the package for the `arm64` architecture:
 
 ```
-wget https://github.com/mavlink/MAVSDK/releases/download/v2.12.12/libmavsdk-dev_2.12.12_debian12_arm64.deb
-sudo dpkg -i libmavsdk-dev_2.12.12_debian12_arm64.deb
+wget https://github.com/mavlink/MAVSDK/releases/download/v3.7.1/libmavsdk-dev_3.7.1_debian12_arm64.deb
+sudo dpkg -i libmavsdk-dev_3.7.1_debian12_arm64.deb
 ```
 
 ### Build
@@ -281,3 +283,5 @@ This could have a couple of reasons:
 
 - Are both processes running, the rtsp-rebroadcast as well as the camera-manager?
 - Are all arguments to camera-manager correct?
+- Is everything H265 or H264? The rtsp_rebroadcast has H265 hard-coded, so the setting would have to match it.
+  Note that the camera's RTSP path is always `main.264` even if it is set to H265.
