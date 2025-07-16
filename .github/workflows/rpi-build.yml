@@ -41,7 +41,7 @@ jobs:
             cmake --build build -j$(nproc) --target install
             ./create_packages.sh ./install . arm64 siyi-a8-mini-camera-manager
       - name: Upload package
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: deb-package
           path: |
