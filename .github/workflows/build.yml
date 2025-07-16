@@ -1,4 +1,4 @@
-name: Build for RPi
+name: Build
 
 on:
   push:
@@ -11,6 +11,35 @@ on:
     - '*'
 
 jobs:
+  build-ubuntu-x64:
+    name: Build on Ubuntu 24.04 x64
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libgstreamer1.0-dev libgstrtspserver-1.0-dev build-essential cmake git wget
+          wget https://github.com/mavlink/MAVSDK/releases/download/v3.7.1/libmavsdk-dev_3.7.1_debian12_amd64.deb
+          sudo dpkg -i libmavsdk-dev_3.7.1_debian12_amd64.deb
+          rm libmavsdk-dev_3.7.1_debian12_amd64.deb
+      - name: Build project
+        run: |
+          cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo -DBUILD_SHARED_LIBS=ON -DCMAKE_INSTALL_PREFIX=install -Bbuild -S.
+          cmake --build build -j$(nproc) --target install
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ubuntu-x64-build
+          path: |
+            install/
+      - name: Run tests
+        run: |
+          cd camera-manager
+          ctest --test-dir ../build/camera-manager
+
   create-deb-package:
     name: Create .deb package
     runs-on: ubuntu-24.04

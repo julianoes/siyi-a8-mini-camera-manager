@@ -1,5 +1,7 @@
 # SIYI A8 mini camera manager
 
+[![Build](https://github.com/julianoes/siyi-a8-mini-camera-manager/actions/workflows/build.yml/badge.svg?branch=main)](https://github.com/julianoes/siyi-a8-mini-camera-manager/actions/workflows/build.yml)
+
 Camera Manager for SIYI A8 mini for RPi based on MAVSDK.
 
 ## Prerequisites
