@@ -283,3 +283,5 @@ This could have a couple of reasons:
 
 - Are both processes running, the rtsp-rebroadcast as well as the camera-manager?
 - Are all arguments to camera-manager correct?
+- Is everything H265 or H264? The rtsp_rebroadcast has H265 hard-coded, so the setting would have to match it.
+  Note that the camera's RTSP path is always `main.264` even if it is set to H265.
