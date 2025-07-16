@@ -118,7 +118,7 @@ int main(int argc, char* argv[])
     }
 
     // MAVSDK setup second
-    mavsdk::Mavsdk mavsdk{mavsdk::Mavsdk::Configuration{mavsdk::Mavsdk::ComponentType::Camera}};
+    mavsdk::Mavsdk mavsdk{mavsdk::Mavsdk::Configuration{mavsdk::ComponentType::Camera}};
 
     // We overwrite the mavsdk logs to prepend "Mavsdk:" and to make sure we flush it after every
     // line using std::endl. Otherwise, it gets buffered by systemctl and logs appear delayed.
@@ -164,7 +164,7 @@ int main(int argc, char* argv[])
     }
 
     auto ftp_server = mavsdk::FtpServer{
-        mavsdk.server_component_by_type(mavsdk::Mavsdk::ComponentType::Camera)};
+        mavsdk.server_component_by_type(mavsdk::ComponentType::Camera)};
 
     // If running locally when built first, otherwise use system-wise:
     std::string path = "./camera-manager/mavlink_ftp_root";
@@ -181,7 +181,7 @@ int main(int argc, char* argv[])
     }
 
     auto param_server = mavsdk::ParamServer{
-        mavsdk.server_component_by_type(mavsdk::Mavsdk::ComponentType::Camera)};
+        mavsdk.server_component_by_type(mavsdk::ComponentType::Camera)};
 
     int32_t stream_res = 0;
     switch (siyi_camera.resolution()) {
@@ -242,7 +242,7 @@ int main(int argc, char* argv[])
     });
 
     auto camera_server = mavsdk::CameraServer{
-        mavsdk.server_component_by_type(mavsdk::Mavsdk::ComponentType::Camera)};
+        mavsdk.server_component_by_type(mavsdk::ComponentType::Camera)};
 
     auto ret = camera_server.set_information({
         .vendor_name = "SIYI",
