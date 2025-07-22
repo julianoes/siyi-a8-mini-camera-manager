@@ -65,21 +65,16 @@ int main(int argc, char* argv[]) {
     GstRTSPServer* server = gst_rtsp_server_new();
     g_object_set(server, "service", "8554", NULL);
 
-    std::string launch_string;
+    std::string source = "rtspsrc location=rtsp://192.168.144.25:8554/main.264 latency=0 ! ";
+    std::string repaying;
+
     if (codec == "h264") {
-        launch_string =
-            "v4l2src device=/dev/video0 ! video/x-raw, format=I420, width=1024, height=576, framerate=30/1 "
-            "! x264enc"
-            "! rtph264pay name=pay0 pt=96";
-    } else if (codec == "h265") {
-        launch_string =
-            "v4l2src device=/dev/video0 ! video/x-raw, format=I420, width=1024, height=576, framerate=30/1 "
-            "! x265enc"
-            "! rtph265pay name=pay0 pt=97";
+        repaying = "rtph264depay ! rtph264pay name=pay0 pt=96";
     } else {
-        std::cerr << "Error: Unexpected codec value '" << codec << "'\n";
-        return 1;
+        repaying = "rtph265depay ! rtph265pay name=pay0 pt=97";
     }
+
+    std::string launch_string = source + repaying;
 
     GstRTSPMediaFactory* factory = gst_rtsp_media_factory_new();
     gst_rtsp_media_factory_set_launch(factory, launch_string.c_str());
