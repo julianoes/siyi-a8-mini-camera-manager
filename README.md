@@ -132,11 +132,21 @@ cmake --build build
 
 ### Run
 
-Then run it:
+Then run it with the codec argument:
 
 ```
-build/rtsp_rebroadcast
+build/rtsp_rebroadcast --codec h264
 ```
+or
+```
+build/rtsp_rebroadcast --codec h265
+```
+
+Use `--help` to see usage information:
+```
+build/rtsp_rebroadcast --help
+```
+
 (by default there is no output)
 
 To test the RTSP server, try to connect to it from another computer connected to the same network. Replace `192.168.x.y` with the IP of your RPI device.
@@ -283,5 +293,5 @@ This could have a couple of reasons:
 
 - Are both processes running, the rtsp-rebroadcast as well as the camera-manager?
 - Are all arguments to camera-manager correct?
-- Is everything H265 or H264? The rtsp_rebroadcast has H265 hard-coded, so the setting would have to match it.
+- Is everything H265 or H264? The rtsp_rebroadcast codec setting should match the camera's encoding format.
   Note that the camera's RTSP path is always `main.264` even if it is set to H265.
