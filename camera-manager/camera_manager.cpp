@@ -320,8 +320,6 @@ int main(int argc, char* argv[])
         } else {
             std::cout << "Start video" << std::endl;
             siyi_messager.send(siyi_serializer.assemble_message(siyi::ToggleRecording{}));
-            std::cout << "Video started" << std::endl;
-            siyi_messager.send(siyi_serializer.assemble_message(siyi::ToggleRecording{}));
             recording = true;
             recording_start_time = std::chrono::steady_clock::now();
             camera_server.respond_start_video(
