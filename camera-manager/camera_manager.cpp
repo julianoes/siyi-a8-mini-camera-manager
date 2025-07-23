@@ -399,18 +399,20 @@ int main(int argc, char* argv[])
     });
 
     camera_server.subscribe_zoom_range([&](float zoom_factor) {
-        if (zoom_factor < 1.f) {
-            std::cout << "Zoom below 1x not possible" << std::endl;
+        if (zoom_factor < 0.f) {
+            std::cout << "Zoom below 0% not possible" << std::endl;
             camera_server.respond_zoom_range(mavsdk::CameraServer::CameraFeedback::Failed);
             return;
         }
-        if (zoom_factor > 6.f) {
-            std::cout << "Zoom above 6x not possible" << std::endl;
+        if (zoom_factor > 100.f) {
+            std::cout << "Zoom above 100% not possible" << std::endl;
             camera_server.respond_zoom_range(mavsdk::CameraServer::CameraFeedback::Failed);
             return;
         }
 
-        siyi_camera.absolute_zoom(zoom_factor);
+        // Map 0-100% input to 1-6x zoom range: 0% -> 1x, 100% -> 6x
+        float actual_zoom = 1.f + (zoom_factor / 100.f) * 5.f;
+        siyi_camera.absolute_zoom(actual_zoom);
         camera_server.respond_zoom_range(mavsdk::CameraServer::CameraFeedback::Ok);
     });
 
